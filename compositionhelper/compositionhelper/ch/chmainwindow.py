@@ -31,11 +31,14 @@ from PyQt5.QtWidgets import (
     )
 
 from .chutils import (
-        checkerBoardBrush,
-        Debug
+        checkerBoardBrush
     )
 from .chwcolorbutton import (
         CHWColorButton
+    )
+from ..pktk.ekrita import (
+        EKritaDocument,
+        EKritaNode
     )
 
 PHI = 1.61803398875
@@ -137,6 +140,9 @@ class CHMainWindow(QDialog):
             Qt.DashDotLine: i18n('Dash-Dot'),
             Qt.DashDotDotLine: i18n('Dash-Dot-Dot')
         }
+
+    # default group layers name
+    __LAYER_GROUP = 'CH# Composition Helpers'
 
     def __init__(self, chName="Composition Helper", chVersion="testing"):
         super(CHMainWindow, self).__init__(Krita.instance().activeWindow().qwindow())
@@ -247,7 +253,7 @@ class CHMainWindow(QDialog):
         self.cbFlipV.toggled.connect(self.__updatePreview)
 
         # button 'add'
-        self.pbAdd.clicked.connect(self.addHelper)
+        self.pbAdd.clicked.connect(self.addHelperLayer)
 
         # button 'close'
         self.pbClose.clicked.connect(closeWindow)
@@ -255,6 +261,12 @@ class CHMainWindow(QDialog):
         # update preview automatically
         self.lblPreview.paintEvent = self.__lblPreviewPaint
         self.lblPreview.resizeEvent = self.__lblPreviewResize
+
+        self.__appNotifier = Krita.instance().notifier()
+        self.__appNotifier.viewClosed.connect(self.__activeViewChanged)
+        self.__window = Krita.instance().activeWindow()
+        self.__window.activeViewChanged.connect(self.__activeViewChanged)
+
 
         self.__updateDocumentPreview()
         updateHelper()
@@ -496,7 +508,7 @@ class CHMainWindow(QDialog):
         # start rendering paper
         painter = QPainter(self.lblPreview)
         painter.setRenderHint(QPainter.Antialiasing)
-        painter.fillRect(self.lblPreview.rect() , Qt.NoBrush)
+        painter.fillRect(self.lblPreview.rect(), Qt.NoBrush)
 
         # position for picture
         pX = (self.lblPreview.width() - self.__documentResized.width())/2
@@ -533,17 +545,25 @@ class CHMainWindow(QDialog):
     def __updateDocumentPreview(self):
         """Retrieve current document projection and refresh preview"""
         document=Krita.instance().activeDocument()
-        self.__documentPreview = document.projection(0, 0, document.width(), document.height())
-        self.__updateDocumentResized()
-        self.__updatePreview()
+        if not document is None:
+            self.__documentPreview = document.projection(0, 0, document.width(), document.height())
+            self.__updateDocumentResized()
+            self.__updatePreview()
+        else:
+            self.__documentPreview = None
+            self.__documentResized = None
         self.lblPreview.update()
 
 
     def __updateDocumentResized(self):
         """Update resized image of document"""
-        self.__lastResized = self.lblPreview.size()
-        self.__documentResized=self.__documentPreview.scaled(self.lblPreview.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        self.__documentRatio = self.__documentResized.width() / self.__documentPreview.width()
+        if not self.__documentPreview is None:
+            self.__lastResized = self.lblPreview.size()
+            self.__documentResized=self.__documentPreview.scaled(self.lblPreview.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            self.__documentRatio = self.__documentResized.width() / self.__documentPreview.width()
+        else:
+            self.__documentPreview = None
+            self.__documentResized = None
 
 
     def __updatePreview(self, dummy=None):
@@ -572,6 +592,20 @@ class CHMainWindow(QDialog):
         return returned
 
 
+    def __activeViewChanged(self):
+        """Called when view/active document has changed"""
+        print('windows', len(self.__window.views()))
+        if len(self.__window.views())<=1:
+            # if there's no more view opened, close dialog
+            # note: it seems that when notifier 'viewClosed' send signale BEFORE
+            #       view is closed... then; need to check if current views is
+            #       lower OR EQUAL to 1
+            self.close()
+            return
+
+        self.__updateDocumentPreview()
+
+
     def showEvent(self, event):
         """Event trigerred when dialog is shown
 
@@ -596,11 +630,47 @@ class CHMainWindow(QDialog):
         """Window is closed"""
         if self.__opened:
             CHMainWindow.__OPENED = False
+            try:
+                self.__window.activeViewChanged.disconnect(self.__activeViewChanged)
+            except:
+                pass
+            try:
+                self.__appNotifier.viewClosed.disconnect(self.__activeViewChanged)
+            except:
+                pass
 
 
-    def addHelper(self):
+    def addHelperLayer(self):
         """Add Helper do current document"""
-        Debug.print("Add helper: not yet implemented")
+        # check if a group Node for helper alreay exists
+        if self.__documentPreview is None:
+            return
 
+        helperId = self.cbxHelpers.currentData()
 
-Debug.setEnabled(True)
+        document = Krita.instance().activeDocument()
+
+        groupNode = EKritaDocument.findFirstLayerByName(document, CHMainWindow.__LAYER_GROUP)
+
+        if groupNode is None:
+            # doesn't exist, create a new one
+            groupNode = document.createGroupLayer(CHMainWindow.__LAYER_GROUP)
+            document.rootNode().addChildNode(groupNode, None)
+
+        newLayer = document.createNode(CHMainWindow.__HELPERS[helperId]['label'], "paintLayer")
+
+        pixmap = QPixmap(self.__documentPreview.size())
+        pixmap.fill(Qt.transparent)
+
+        painter = QPainter()
+        painter.begin(pixmap)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setPen(self.__getPen())
+        self.__paintHelper(helperId, painter, pixmap.size(), self.__getOptions())
+        painter.end()
+
+        EKritaNode.fromQPixmap(newLayer, pixmap)
+
+        groupNode.addChildNode(newLayer, None)
+        document.refreshProjection()
+        self.__updateDocumentPreview()
