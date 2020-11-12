@@ -25,7 +25,12 @@ import sys
 import os
 
 import PyQt5.uic
-
+from PyQt5.Qt import *
+from PyQt5.QtGui import (
+        QBrush,
+        QPainter,
+        QPixmap
+    )
 
 # ------------------------------------------------------------------------------
 # don't really like to use global variable... create a class with static methods instead?

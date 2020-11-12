@@ -30,7 +30,10 @@ from PyQt5.QtWidgets import (
         QWidget
     )
 
-from .chutils import Debug
+from .chutils import (
+        checkerBoardBrush,
+        Debug
+    )
 from .chwcolorbutton import (
         CHWColorButton
     )
@@ -139,8 +142,9 @@ class CHMainWindow(QDialog):
         super(CHMainWindow, self).__init__(Krita.instance().activeWindow().qwindow())
 
         # another instance already exist, exit
+        self.__opened = False
         if CHMainWindow.__OPENED:
-            self.reject()
+            self.close()
             return
 
         if Krita.instance().activeDocument() is None:
@@ -150,7 +154,7 @@ class CHMainWindow(QDialog):
                     f"{chName}",
                     i18n("There's no active document: <i>Composition Helper</i> plugin only works with opened documents")
                 )
-            self.reject()
+            self.close()
             return
 
         uiFileName = os.path.join(os.path.dirname(__file__), 'resources', 'chmainwindow.ui')
@@ -164,9 +168,22 @@ class CHMainWindow(QDialog):
         self.__iconSizeLineStyle = QSize(48,12)
         self.__iconSizeHelper = QSize(128,96)
 
+        # timer is used to update preview content when dialog window is resized
+        self.__timerResizeId = 0
+        self.__lastResized = QSize(0, 0)
+
+        # document preview: projection from document
+        # document resized: projection resized to label dimension andd store as a cache to avoid doing resizing on each
+        #                   canvas refresh
+        self.__documentPreview = None
+        self.__documentResized = None
+        # ratio applied between original size and preview size
+        self.__documentRatio = 1
+
         # initialise window
         self.__initialise()
 
+        self.__opened = True
         CHMainWindow.__OPENED = True
         self.show()
 
@@ -175,8 +192,7 @@ class CHMainWindow(QDialog):
         """Initialise window"""
         def closeWindow(dummy=None):
             # close window
-            CHMainWindow.__OPENED = False
-            self.accept()
+            self.close()
 
         def updateDsbLineWidth(value):
             # Line width slider value has been modified, update spinbox
@@ -225,12 +241,22 @@ class CHMainWindow(QDialog):
         # set line color button
         self.pbLineColor.clicked.connect(self.__updatePreview)
 
+        # options
+        self.cbForceGR.toggled.connect(self.__updatePreview)
+        self.cbFlipH.toggled.connect(self.__updatePreview)
+        self.cbFlipV.toggled.connect(self.__updatePreview)
+
         # button 'add'
         self.pbAdd.clicked.connect(self.addHelper)
 
         # button 'close'
         self.pbClose.clicked.connect(closeWindow)
 
+        # update preview automatically
+        self.lblPreview.paintEvent = self.__lblPreviewPaint
+        self.lblPreview.resizeEvent = self.__lblPreviewResize
+
+        self.__updateDocumentPreview()
         updateHelper()
 
 
@@ -258,7 +284,7 @@ class CHMainWindow(QDialog):
         pixmap.fill(Qt.transparent)
 
         pen = QPen(Qt.SolidLine)
-        pen.setWidth(1)
+        pen.setWidth(1.5)
         pen.setColor(self.__palette.color(QPalette.ButtonText))
 
         painter = QPainter()
@@ -323,27 +349,35 @@ class CHMainWindow(QDialog):
         scaleX = 1
         scaleY = 1
 
+        if h>w:
+            # When height is greater than width, just apply a transformation, don't try to define
+            # new calculation ( -- lazy mode ^_^' -- )
+            h, w = w, h
+            nH, nW = nW, nH
+            painter.rotate(90)
+            painter.translate(0, -nH)
+
+            # due to rotation, need to invert flip V/H
+            nOptions=[]
+            if CHHelpers.OPTION_FLIPH in options:
+                nOptions.append(CHHelpers.OPTION_FLIPV)
+            if CHHelpers.OPTION_FLIPV in options:
+                nOptions.append(CHHelpers.OPTION_FLIPH)
+            if CHHelpers.OPTION_FORCE_GR in options:
+                nOptions.append(CHHelpers.OPTION_FORCE_GR)
+            options=nOptions
+
         if CHHelpers.OPTION_FORCE_GR in options:
             # Force to respect golden ratio
             # calculate new width/height + offset for constrained golden ratio
-            if w >= h:
-                if (w/h) >= PHI:
-                    nW = h * PHI
-                    nH = h
-                    oX = (w - nW)/2
-                else:
-                    nW = w
-                    nH = w / PHI
-                    oY = (h - nH)/2
+            if (w/h) >= PHI:
+                nW = h * PHI
+                nH = h
+                oX = (w - nW)/2
             else:
-                if (h/w) >= PHI:
-                    nW = w
-                    nH = w / PHI
-                    oY = (h - nH)/2
-                else:
-                    nW = h * PHI
-                    nH = h
-                    oX = (w - nW)/2
+                nW = w
+                nH = w / PHI
+                oY = (h - nH)/2
 
         if oX != 0 or oY != 0:
             painter.translate(oX, oY)
@@ -354,8 +388,14 @@ class CHMainWindow(QDialog):
             scaleY = -1
 
         if scaleX != 1 or scaleY != 1:
-            painter.translate(nW, nH)
             painter.scale(scaleX, scaleY)
+            tX=0
+            if scaleX != 1:
+                tX=-nW
+            tY=0
+            if scaleY != 1:
+                tY=-nH
+            painter.translate(tX, tY)
 
         if helper == CHHelpers.RULE_OF_THIRD:
             pX=nW/3
@@ -379,12 +419,12 @@ class CHMainWindow(QDialog):
         elif helper == CHHelpers.GOLDEN_SPIRAL:
             # start spiral path
             spiralPath=QPainterPath()
-            spiralPath.moveTo(oX, oY)
+            spiralPath.moveTo(0, 0)
 
             # fromStart is used to determinate from which side golden section have to be calculated
             fromStart = 1
             startAngle=180
-            r = getGoldenPosition(QRectF(oX, oY, nW, nH), True)
+            r = getGoldenPosition(QRectF(0, 0, nW, nH), True)
 
             # arbitrary define 8 sections...
             for number in range(8):
@@ -405,7 +445,7 @@ class CHMainWindow(QDialog):
         elif helper == CHHelpers.GOLDEN_SPIRAL_SECTION:
             # fromStart is used to determinate from which side golden section have to be calculated
             fromStart = 1
-            r = getGoldenPosition(QRectF(oX, oY, nW, nH), True)
+            r = getGoldenPosition(QRectF(0, 0, nW, nH), True)
 
             # arbitrary define 8 sections...
             for number in range(8):
@@ -418,31 +458,25 @@ class CHMainWindow(QDialog):
                 r = getGoldenPosition(r[2], (fromStart<=1))
         elif helper == CHHelpers.GOLDEN_TRIANGLES:
             lines.append(QLineF(0, 0, nW, nH))
-            if nW>=nH:
-                pX=nW/(1+PHI)
-                pY=nH/(1+PHI)
+            pX=nW/(1+PHI)
+            pY=nH/(1+PHI)
 
-                lines.append(QLineF(0, nH, pX, 0))
-                lines.append(QLineF(nW, 0, nW - pX, nH))
-            else:
-                pass
+            lines.append(QLineF(0, nH, pX, 0))
+            lines.append(QLineF(nW, 0, nW - pX, nH))
         elif helper == CHHelpers.GOLDEN_DIAGONALS:
-            if nW>=nH:
-                dX=nW - nH
-                lines.append(QLineF(0, 0, nH, nH))
-                lines.append(QLineF(0, nH, nH, 0))
+            dX=nW - nH
+            lines.append(QLineF(0, 0, nH, nH))
+            lines.append(QLineF(0, nH, nH, 0))
 
-                lines.append(QLineF(dX, 0, dX + nH, nH))
-                lines.append(QLineF(dX, nH, dX + nH, 0))
-            else:
-                pass
+            lines.append(QLineF(dX, 0, dX + nH, nH))
+            lines.append(QLineF(dX, nH, dX + nH, 0))
         elif helper == CHHelpers.BASIC_CROSS:
             mX=nW/2
             mY=nH/2
             lines.append(QLineF(mX, 0, mX, nH))
             lines.append(QLineF(0, mY, nW, mY))
         elif helper == CHHelpers.BASIC_DIAGONALS:
-            lines.append(QLineF(0, 0, nW, h))
+            lines.append(QLineF(0, 0, nW, nH))
             lines.append(QLineF(0, nH, nW, 0))
 
         painter.drawLines(lines)
@@ -451,9 +485,117 @@ class CHMainWindow(QDialog):
         painter.restore()
 
 
+    def __lblPreviewPaint(self, event):
+        """Update label preview"""
+        # Method is paintEvent() for widget lblPreview
+
+        if self.__documentResized is None:
+            return
+
+        # ----------------------------------------------------------------------
+        # start rendering paper
+        painter = QPainter(self.lblPreview)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.fillRect(self.lblPreview.rect() , Qt.NoBrush)
+
+        # position for picture
+        pX = (self.lblPreview.width() - self.__documentResized.width())/2
+        pY = (self.lblPreview.height() - self.__documentResized.height())/2
+
+        painter.translate(pX, pY)
+
+        # draw a checkboard as background, usefull for picture with alpha channel
+        painter.fillRect(QRect(0, 0, self.__documentResized.width(), self.__documentResized.height()), checkerBoardBrush())
+
+        # picture from cache
+        painter.drawImage(0, 0, self.__documentResized)
+
+        # initialise pen according to UI
+        painter.setPen(self.__getPen(self.__documentRatio))
+
+        # -- draw helper
+        self.__paintHelper(self.cbxHelpers.currentData(), painter, self.__documentResized.size(), self.__getOptions())
+
+
+    def __lblPreviewResize(self, event=None):
+        """Label has been resized"""
+        # can't update self.__documentResized QImage on each event because it's slow down the interface
+        # so implement a timer of 250ms
+        # if timer reach timeout, then trigger timerEvent() and calculate new dimension and refresh preview
+        # otherwise, if event occurs while timeout isn't reached, reinitialise timer
+        if self.__timerResizeId!=0:
+            self.killTimer(self.__timerResizeId)
+            self.__timerResizeId=0
+
+        self.__timerResizeId=self.startTimer(250)
+
+
+    def __updateDocumentPreview(self):
+        """Retrieve current document projection and refresh preview"""
+        document=Krita.instance().activeDocument()
+        self.__documentPreview = document.projection(0, 0, document.width(), document.height())
+        self.__updateDocumentResized()
+        self.__updatePreview()
+        self.lblPreview.update()
+
+
+    def __updateDocumentResized(self):
+        """Update resized image of document"""
+        self.__lastResized = self.lblPreview.size()
+        self.__documentResized=self.__documentPreview.scaled(self.lblPreview.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        self.__documentRatio = self.__documentResized.width() / self.__documentPreview.width()
+
+
     def __updatePreview(self, dummy=None):
         """Update preview"""
-        Debug.print("Update preview: not yet implemented")
+        self.lblPreview.update()
+
+
+    def __getPen(self, penWidthRatio=1):
+        """Return a QPen according to current configuration"""
+        pen = QPen(self.pbLineColor.color())
+        pen.setStyle(self.cbxLineStyle.currentData())
+        pen.setWidth(max(0.75, self.dsbLineWidth.value() * penWidthRatio))
+        return pen
+
+
+    def __getOptions(self):
+        """Return option list according to current configuration"""
+        returned=[]
+        if self.cbForceGR.isChecked():
+            returned.append(CHHelpers.OPTION_FORCE_GR)
+        if self.cbFlipV.isChecked():
+            returned.append(CHHelpers.OPTION_FLIPV)
+        if self.cbFlipH.isChecked():
+            returned.append(CHHelpers.OPTION_FLIPH)
+
+        return returned
+
+
+    def showEvent(self, event):
+        """Event trigerred when dialog is shown
+
+        At this time, all widgets are initialised and size/visiblity is known
+        """
+        self.__updateDocumentPreview()
+
+
+    def timerEvent(self, event):
+        """Print resize timeout occured"""
+        # timeout initialized during resize has been reached
+        self.__timerResizeId=0
+
+        if not self.__documentPreview is None and self.__lastResized != self.lblPreview.size():
+            # calculate new dimension + refresh preview only if size has been modified
+            self.__updateDocumentResized()
+            self.__updatePreview()
+            self.lblPreview.update()
+
+
+    def closeEvent(self, event):
+        """Window is closed"""
+        if self.__opened:
+            CHMainWindow.__OPENED = False
 
 
     def addHelper(self):
