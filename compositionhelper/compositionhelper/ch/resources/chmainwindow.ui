@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Composition Helper</string>
   </property>
   <property name="sizeGripEnabled">
    <bool>true</bool>
@@ -310,6 +310,16 @@
       <property name="bottomMargin">
        <number>0</number>
       </property>
+      <item>
+       <widget class="QPushButton" name="pbAbout">
+        <property name="text">
+         <string>About</string>
+        </property>
+        <property name="icon">
+         <iconset theme="help-about"/>
+        </property>
+       </widget>
+      </item>
       <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
