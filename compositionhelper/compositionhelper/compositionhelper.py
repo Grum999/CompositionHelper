@@ -48,6 +48,7 @@ if __name__ != '__main__':
             PkTk
         )
     from .ch.chutils import checkKritaVersion
+    from .ch.chmainwindow import CHMainWindow
 else:
     # Execution from 'Scripter' plugin?
     __PLUGIN_EXEC_FROM__ = 'SCRIPTER_PLUGIN'
@@ -69,6 +70,7 @@ else:
             PkTk
         )
     from compositionhelper.ch.chutils import checkKritaVersion
+    from compositionhelper.ch.chmainwindow import CHMainWindow
 
     print("======================================")
 
@@ -114,6 +116,7 @@ class CompositionHelper(Extension):
                                     )
             return
 
+        CHMainWindow(PLUGIN_MENU_ENTRY, PLUGIN_VERSION)
 
 if __PLUGIN_EXEC_FROM__ == 'SCRIPTER_PLUGIN':
     sys.stdout = sys.__stdout__
