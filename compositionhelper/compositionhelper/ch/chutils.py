@@ -33,7 +33,6 @@ from PyQt5.QtGui import (
     )
 
 # ------------------------------------------------------------------------------
-# don't really like to use global variable... create a class with static methods instead?
 def strDefault(value, default=''):
     """Return value as str
 
@@ -75,34 +74,6 @@ def checkerBoardBrush(size=32):
     canvas.end()
 
     return QBrush(tmpPixmap)
-
-def checkerBoardImage(size, checkerSize=32):
-    """Return a checker board image"""
-    if isinstance(size, int):
-        size = QSize(size, size)
-
-    if not isinstance(size, QSize):
-        return None
-
-    pixmap = QPixmap(size)
-    painter = QPainter(pixmap)
-    painter.begin()
-    painter.fillRect(pixmap.rect(), checkerBoardBrush(checkerSize))
-    painter.end()
-
-    return pixmap
-
-def buildIcon(icons):
-    """Return a QIcon from given icons"""
-    if isinstance(icons, QIcon):
-        return icons
-    elif isinstance(icons, list) and len(icons)>0:
-        returned = QIcon()
-        for icon in icons:
-            returned.addPixmap(*icon)
-        return returned
-    else:
-        raise EInvalidType("Given `icons` must be a list of tuples")
 
 def kritaVersion():
     """Return a dictionary with following values:
