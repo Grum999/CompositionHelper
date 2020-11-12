@@ -33,6 +33,9 @@ from PyQt5.QtWidgets import (
 from .chutils import (
         checkerBoardBrush
     )
+from .chabout import (
+        CHAboutWindow
+    )
 from .chwcolorbutton import (
         CHWColorButton
     )
@@ -148,6 +151,9 @@ class CHMainWindow(QDialog):
         super(CHMainWindow, self).__init__(Krita.instance().activeWindow().qwindow())
 
         # another instance already exist, exit
+        self.__chName = chName
+        self.__chVersion = chVersion
+
         self.__opened = False
         if CHMainWindow.__OPENED:
             self.close()
@@ -228,6 +234,10 @@ class CHMainWindow(QDialog):
 
             self.__updatePreview()
 
+        def displayAbout(dummy=None):
+            # display about window
+            CHAboutWindow(self.__chName, self.__chVersion)
+
         # build Helper list
         self.cbxHelpers.setIconSize(self.__iconSizeHelper)
         for helper in CHMainWindow.__HELPERS:
@@ -257,6 +267,8 @@ class CHMainWindow(QDialog):
 
         # button 'close'
         self.pbClose.clicked.connect(closeWindow)
+
+        self.pbAbout.clicked.connect(displayAbout)
 
         # update preview automatically
         self.lblPreview.paintEvent = self.__lblPreviewPaint
@@ -594,7 +606,6 @@ class CHMainWindow(QDialog):
 
     def __activeViewChanged(self):
         """Called when view/active document has changed"""
-        print('windows', len(self.__window.views()))
         if len(self.__window.views())<=1:
             # if there's no more view opened, close dialog
             # note: it seems that when notifier 'viewClosed' send signale BEFORE
