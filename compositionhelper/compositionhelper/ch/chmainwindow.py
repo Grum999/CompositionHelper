@@ -30,11 +30,19 @@ from PyQt5.QtWidgets import (
         QWidget
     )
 
+from .chhelpers import (
+        CHHelpers,
+        CHHelpersDef
+    )
 from .chutils import (
         checkerBoardBrush
     )
 from .chabout import (
         CHAboutWindow
+    )
+from .chsettings import (
+        CHSettings,
+        CHSettingsKey
     )
 from .chwcolorbutton import (
         CHWColorButton
@@ -44,96 +52,15 @@ from ..pktk.ekrita import (
         EKritaNode
     )
 
+# Define Golden number value
 PHI = 1.61803398875
 
-class CHHelpers:
-    GOLDEN_RECTANGLE = 'goldrect'
-    GOLDEN_SPIRAL = 'goldspi'
-    GOLDEN_SPIRAL_SECTION = 'goldspisec'
-    GOLDEN_TRIANGLES = 'goldspetr'
-    GOLDEN_DIAGONALS = 'goldspidiag'
-    GOLDEN_SECTION = 'goldsec'
-    RULE_OF_THIRD = 'ro3'
-    BASIC_CROSS = 'bascross'
-    BASIC_DIAGONALS = 'basdiag'
-
-
-    OPTION_FLIPV = 'flipV'
-    OPTION_FLIPH = 'flipH'
-    OPTION_FORCE_GR ='forceGR'
 
 # -----------------------------------------------------------------------------
 class CHMainWindow(QDialog):
     """Main Composition Helper window"""
     # A flag to ensure that class is instancied only once
     __OPENED = False
-
-    # helpers key/properties
-    __HELPERS = {
-            CHHelpers.GOLDEN_RECTANGLE: {
-                                        'label': i18n('Golden rectangle'),
-                                        'options': {
-                                                'available': [],
-                                                'default':   [CHHelpers.OPTION_FORCE_GR]
-                                            }
-                                    },
-            CHHelpers.GOLDEN_SPIRAL: {
-                                        'label': i18n('Golden spiral'),
-                                        'options': {
-                                                'available': [CHHelpers.OPTION_FLIPV, CHHelpers.OPTION_FLIPH],
-                                                'default':   [CHHelpers.OPTION_FORCE_GR]
-                                            }
-                                    },
-            CHHelpers.GOLDEN_SPIRAL_SECTION: {
-                                        'label': i18n('Golden spiral section'),
-                                        'options': {
-                                                'available': [CHHelpers.OPTION_FLIPV, CHHelpers.OPTION_FLIPH],
-                                                'default':   [CHHelpers.OPTION_FORCE_GR]
-                                            }
-                                    },
-            CHHelpers.GOLDEN_TRIANGLES: {
-                                        'label': i18n('Golden triangles'),
-                                        'options': {
-                                                'available': [CHHelpers.OPTION_FORCE_GR, CHHelpers.OPTION_FLIPV, CHHelpers.OPTION_FLIPH],
-                                                'default':   [CHHelpers.OPTION_FORCE_GR]
-                                            }
-                                    },
-            CHHelpers.GOLDEN_DIAGONALS: {
-                                        'label': i18n('Golden diagonals'),
-                                        'options': {
-                                                'available': [CHHelpers.OPTION_FORCE_GR],
-                                                'default':   []
-                                            }
-                                    },
-            CHHelpers.GOLDEN_SECTION: {
-                                        'label': i18n('Golden section'),
-                                        'options': {
-                                                'available': [CHHelpers.OPTION_FORCE_GR],
-                                                'default':   []
-                                            }
-                                    },
-            CHHelpers.RULE_OF_THIRD: {
-                                        'label': i18n('Rule of thirds'),
-                                        'options': {
-                                                'available': [CHHelpers.OPTION_FORCE_GR],
-                                                'default':   []
-                                            }
-                                    },
-            CHHelpers.BASIC_CROSS: {
-                                        'label': i18n('Basic cross'),
-                                        'options': {
-                                                'available': [],
-                                                'default':   []
-                                            }
-                                    },
-            CHHelpers.BASIC_DIAGONALS: {
-                                        'label': i18n('Basic diagonals'),
-                                        'options': {
-                                                'available': [CHHelpers.OPTION_FORCE_GR],
-                                                'default':   []
-                                            }
-                                    }
-        }
 
     # key/names
     __LINE_STYLES = {
@@ -192,6 +119,9 @@ class CHMainWindow(QDialog):
         # ratio applied between original size and preview size
         self.__documentRatio = 1
 
+        self.__settings = CHSettings()
+        self.__settings.loadConfig()
+
         # initialise window
         self.__initialise()
 
@@ -220,17 +150,37 @@ class CHMainWindow(QDialog):
             # helper model has been changed, update interface
             currentHelper = self.cbxHelpers.currentData()
 
-            optionsAvailable = CHMainWindow.__HELPERS[currentHelper]['options']['available']
-            optionsDefault = CHMainWindow.__HELPERS[currentHelper]['options']['default']
+
+            # get default value from config
+            optionsSettings = self.__settings.option(CHSettingsKey.HELPER_OPTIONS.id(helperId=currentHelper))
+
+            optionsAvailable = CHHelpersDef.HELPERS[currentHelper]['options']['available']
+            optionsForced=CHHelpersDef.HELPERS[currentHelper]['options']['forced']
+
+            self.pbLineColor.setColor(self.__settings.option(CHSettingsKey.HELPER_LINE_COLOR.id(helperId=currentHelper)))
+            self.cbxLineStyle.setCurrentIndex(list(CHMainWindow.__LINE_STYLES.keys()).index(self.__settings.option(CHSettingsKey.HELPER_LINE_STYLE.id(helperId=currentHelper))))
+            self.dsbLineWidth.setValue(self.__settings.option(CHSettingsKey.HELPER_LINE_WIDTH.id(helperId=currentHelper)))
 
             self.cbForceGR.setEnabled(CHHelpers.OPTION_FORCE_GR in optionsAvailable)
-            self.cbForceGR.setChecked(CHHelpers.OPTION_FORCE_GR in optionsDefault)
+            if self.cbForceGR.isEnabled():
+                self.cbForceGR.setChecked(CHHelpers.OPTION_FORCE_GR in optionsSettings)
+            else:
+                # forced value?
+                self.cbForceGR.setChecked(CHHelpers.OPTION_FORCE_GR in optionsForced)
 
             self.cbFlipH.setEnabled(CHHelpers.OPTION_FLIPV in optionsAvailable)
-            self.cbFlipH.setChecked(CHHelpers.OPTION_FLIPV in optionsDefault)
+            if self.cbFlipH.isEnabled():
+                self.cbFlipH.setChecked(CHHelpers.OPTION_FLIPV in optionsSettings)
+            else:
+                # forced value?
+                self.cbFlipH.setChecked(CHHelpers.OPTION_FLIPV in optionsForced)
 
             self.cbFlipV.setEnabled(CHHelpers.OPTION_FLIPH in optionsAvailable)
-            self.cbFlipV.setChecked(CHHelpers.OPTION_FLIPH in optionsDefault)
+            if self.cbFlipV.isEnabled():
+                self.cbFlipV.setChecked(CHHelpers.OPTION_FLIPH in optionsSettings)
+            else:
+                # forced value?
+                self.cbFlipV.setChecked(CHHelpers.OPTION_FLIPH in optionsForced)
 
             self.__updatePreview()
 
@@ -240,8 +190,9 @@ class CHMainWindow(QDialog):
 
         # build Helper list
         self.cbxHelpers.setIconSize(self.__iconSizeHelper)
-        for helper in CHMainWindow.__HELPERS:
-            self.cbxHelpers.addItem(self.__buildHelperIcon(helper), f" {CHMainWindow.__HELPERS[helper]['label']}", helper)
+        for helper in CHHelpersDef.HELPERS:
+            self.cbxHelpers.addItem(self.__buildHelperIcon(helper), f" {CHHelpersDef.HELPERS[helper]['label']}", helper)
+        self.cbxHelpers.setCurrentIndex(list(CHHelpersDef.HELPERS.keys()).index(self.__settings.option(CHSettingsKey.HELPER_LAST_USED.id())))
         self.cbxHelpers.currentIndexChanged.connect(updateHelper)
 
         # link line width slider<>spinbox
@@ -315,7 +266,7 @@ class CHMainWindow(QDialog):
         painter.begin(pixmap)
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setPen(pen)
-        self.__paintHelper(helper, painter, self.__iconSizeHelper, CHMainWindow.__HELPERS[helper]['options']['default'])
+        self.__paintHelper(helper, painter, self.__iconSizeHelper, CHHelpersDef.HELPERS[helper]['options']['forced'])
         painter.end()
 
         return QIcon(pixmap)
@@ -587,19 +538,22 @@ class CHMainWindow(QDialog):
         """Return a QPen according to current configuration"""
         pen = QPen(self.pbLineColor.color())
         pen.setStyle(self.cbxLineStyle.currentData())
-        pen.setWidth(max(0.75, self.dsbLineWidth.value() * penWidthRatio))
+        pen.setWidthF(max(0.75, self.dsbLineWidth.value() * penWidthRatio))
         return pen
 
 
-    def __getOptions(self):
+    def __getOptions(self, enabledOnly=False):
         """Return option list according to current configuration"""
         returned=[]
         if self.cbForceGR.isChecked():
-            returned.append(CHHelpers.OPTION_FORCE_GR)
+            if self.cbForceGR.isEnabled() or not enabledOnly:
+                returned.append(CHHelpers.OPTION_FORCE_GR)
         if self.cbFlipV.isChecked():
-            returned.append(CHHelpers.OPTION_FLIPV)
+            if self.cbFlipV.isEnabled() or not enabledOnly:
+                returned.append(CHHelpers.OPTION_FLIPV)
         if self.cbFlipH.isChecked():
-            returned.append(CHHelpers.OPTION_FLIPH)
+            if self.cbFlipH.isEnabled() or not enabledOnly:
+                returned.append(CHHelpers.OPTION_FLIPH)
 
         return returned
 
@@ -640,7 +594,6 @@ class CHMainWindow(QDialog):
     def closeEvent(self, event):
         """Window is closed"""
         if self.__opened:
-            CHMainWindow.__OPENED = False
             try:
                 self.__window.activeViewChanged.disconnect(self.__activeViewChanged)
             except:
@@ -649,6 +602,7 @@ class CHMainWindow(QDialog):
                 self.__appNotifier.viewClosed.disconnect(self.__activeViewChanged)
             except:
                 pass
+            CHMainWindow.__OPENED = False
 
 
     def addHelperLayer(self):
@@ -668,15 +622,17 @@ class CHMainWindow(QDialog):
             groupNode = document.createGroupLayer(CHMainWindow.__LAYER_GROUP)
             document.rootNode().addChildNode(groupNode, None)
 
-        newLayer = document.createNode(CHMainWindow.__HELPERS[helperId]['label'], "paintLayer")
+        newLayer = document.createNode(CHHelpersDef.HELPERS[helperId]['label'], "paintLayer")
 
         pixmap = QPixmap(self.__documentPreview.size())
         pixmap.fill(Qt.transparent)
 
+        pen = self.__getPen()
+
         painter = QPainter()
         painter.begin(pixmap)
         painter.setRenderHint(QPainter.Antialiasing)
-        painter.setPen(self.__getPen())
+        painter.setPen(pen)
         self.__paintHelper(helperId, painter, pixmap.size(), self.__getOptions())
         painter.end()
 
@@ -685,3 +641,13 @@ class CHMainWindow(QDialog):
         groupNode.addChildNode(newLayer, None)
         document.refreshProjection()
         self.__updateDocumentPreview()
+
+        # also update settings when a layers is added (keep in memory that for current helper, the
+        # prefered values are current values)
+        self.__settings.setOption(CHSettingsKey.HELPER_LAST_USED.id(), helperId)
+        self.__settings.setOption(CHSettingsKey.HELPER_LINE_COLOR.id(helperId=helperId), pen.color().name(QColor.HexArgb))
+        self.__settings.setOption(CHSettingsKey.HELPER_LINE_STYLE.id(helperId=helperId), pen.style())
+        self.__settings.setOption(CHSettingsKey.HELPER_LINE_WIDTH.id(helperId=helperId), pen.widthF())
+        self.__settings.setOption(CHSettingsKey.HELPER_OPTIONS.id(helperId=helperId), self.__getOptions(True))
+        self.__settings.saveConfig()
+
