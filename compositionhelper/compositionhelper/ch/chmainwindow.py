@@ -119,6 +119,8 @@ class CHMainWindow(QDialog):
         # ratio applied between original size and preview size
         self.__documentRatio = 1
 
+        self.__documentSelection = None
+
         self.__settings = CHSettings()
         self.__settings.loadConfig()
 
@@ -182,6 +184,8 @@ class CHMainWindow(QDialog):
                 # forced value?
                 self.cbFlipV.setChecked(CHHelpers.OPTION_FLIPH in optionsForced)
 
+            self.cbUseSelection.setChecked(CHHelpers.OPTION_USE_SELECTION in optionsSettings)
+
             self.__updatePreview()
 
         def displayAbout(dummy=None):
@@ -212,6 +216,7 @@ class CHMainWindow(QDialog):
         self.cbForceGR.toggled.connect(self.__updatePreview)
         self.cbFlipH.toggled.connect(self.__updatePreview)
         self.cbFlipV.toggled.connect(self.__updatePreview)
+        self.cbUseSelection.toggled.connect(self.__updatePreview)
 
         # button 'add'
         self.pbAdd.clicked.connect(self.addHelperLayer)
@@ -266,13 +271,13 @@ class CHMainWindow(QDialog):
         painter.begin(pixmap)
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setPen(pen)
-        self.__paintHelper(helper, painter, self.__iconSizeHelper, CHHelpersDef.HELPERS[helper]['options']['forced'])
+        self.__paintHelper(helper, painter, QRect(QPoint(0,0), self.__iconSizeHelper), CHHelpersDef.HELPERS[helper]['options']['forced'])
         painter.end()
 
         return QIcon(pixmap)
 
 
-    def __paintHelper(self, helper, painter, size, options=[]):
+    def __paintHelper(self, helper, painter, rectArea, options=[]):
         """Paint `helper` on `painter`, using given `size`
 
         Consider that paint surface is initialised as well as the painter pen
@@ -315,12 +320,12 @@ class CHMainWindow(QDialog):
         lines=[]
 
         # w, h => easier to read in code
-        w = size.width()
-        h = size.height()
+        w = rectArea.width()
+        h = rectArea.height()
         nW = w
         nH = h
-        oX = 0
-        oY = 0
+        oX = rectArea.x()
+        oY = rectArea.y()
         scaleX = 1
         scaleY = 1
 
@@ -329,6 +334,7 @@ class CHMainWindow(QDialog):
             # new calculation ( -- lazy mode ^_^' -- )
             h, w = w, h
             nH, nW = nW, nH
+            oX, oY = oY, -oX
             painter.rotate(90)
             painter.translate(0, -nH)
 
@@ -348,11 +354,11 @@ class CHMainWindow(QDialog):
             if (w/h) >= PHI:
                 nW = h * PHI
                 nH = h
-                oX = (w - nW)/2
+                oX += (w - nW)/2
             else:
                 nW = w
                 nH = w / PHI
-                oY = (h - nH)/2
+                oY += (h - nH)/2
 
         if oX != 0 or oY != 0:
             painter.translate(oX, oY)
@@ -488,8 +494,16 @@ class CHMainWindow(QDialog):
         # initialise pen according to UI
         painter.setPen(self.__getPen(self.__documentRatio))
 
+        # define drawing area
+        drawRect = self.__documentResized.rect()
+        if self.cbUseSelection.isEnabled() and self.cbUseSelection.isChecked():
+            drawRect = QRect(int(self.__documentRatio * self.__documentSelection.x()),
+                             int(self.__documentRatio * self.__documentSelection.y()),
+                             int(self.__documentRatio * self.__documentSelection.width()),
+                             int(self.__documentRatio * self.__documentSelection.height()))
+
         # -- draw helper
-        self.__paintHelper(self.cbxHelpers.currentData(), painter, self.__documentResized.size(), self.__getOptions())
+        self.__paintHelper(self.cbxHelpers.currentData(), painter, drawRect, self.__getOptions())
 
 
     def __lblPreviewResize(self, event=None):
@@ -510,6 +524,7 @@ class CHMainWindow(QDialog):
         document=Krita.instance().activeDocument()
         if not document is None:
             self.__documentPreview = document.projection(0, 0, document.width(), document.height())
+            self.__updateDocumentSelection()
             self.__updateDocumentResized()
             self.__updatePreview()
         else:
@@ -527,6 +542,23 @@ class CHMainWindow(QDialog):
         else:
             self.__documentPreview = None
             self.__documentResized = None
+
+    def __updateDocumentSelection(self, selection=None):
+        document = Krita.instance().activeDocument()
+        if not document is None and not (selection:=document.selection()) is None:
+            self.cbUseSelection.setEnabled(True)
+            if (self.__documentSelection is None or
+               selection.x() != self.__documentSelection.x() or
+               selection.y() != self.__documentSelection.y() or
+               selection.width() != self.__documentSelection.width() or
+               selection.height() != self.__documentSelection.height()):
+               self.__documentSelection = QRect(selection.x(), selection.y(), selection.width(), selection.height())
+               return True
+        elif not self.__documentSelection is None:
+            self.cbUseSelection.setEnabled(False)
+            self.__documentSelection = None
+            return True
+        return False
 
 
     def __updatePreview(self, dummy=None):
@@ -554,6 +586,9 @@ class CHMainWindow(QDialog):
         if self.cbFlipH.isChecked():
             if self.cbFlipH.isEnabled() or not enabledOnly:
                 returned.append(CHHelpers.OPTION_FLIPH)
+        if self.cbUseSelection.isChecked():
+            # ignore enabledOnly option here
+            returned.append(CHHelpers.OPTION_USE_SELECTION)
 
         return returned
 
@@ -605,6 +640,26 @@ class CHMainWindow(QDialog):
             CHMainWindow.__OPENED = False
 
 
+    def enterEvent(self, event):
+        """Trigerred when mouse enter above QDialog"""
+        # not sure why focusInEvent is not working so use this one
+        # maybe not the more elegant way to do it but as there's no event/signal on Document class
+        # allowoing to detect selection has been modified (or if exist, was not found :-/)
+        #
+        # consider, if mouse leave and the enter on QDialog that maybe, the selection in document
+        # has been modified
+        # so check selection and update things if needed
+        #
+        document=Krita.instance().activeDocument()
+        if (not document is None and
+            (document.width() != self.__documentPreview.width() or
+             document.height() != self.__documentPreview.height())):
+            # document size have been modified
+            self.__updateDocumentPreview()
+        elif self.__updateDocumentSelection():
+            self.__updatePreview()
+
+
     def addHelperLayer(self):
         """Add Helper do current document"""
         # check if a group Node for helper alreay exists
@@ -627,13 +682,17 @@ class CHMainWindow(QDialog):
         pixmap = QPixmap(self.__documentPreview.size())
         pixmap.fill(Qt.transparent)
 
+        drawRect = pixmap.rect()
+        if self.cbUseSelection.isEnabled() and self.cbUseSelection.isChecked():
+            drawRect = self.__documentSelection
+
         pen = self.__getPen()
 
         painter = QPainter()
         painter.begin(pixmap)
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setPen(pen)
-        self.__paintHelper(helperId, painter, pixmap.size(), self.__getOptions())
+        self.__paintHelper(helperId, painter, drawRect, self.__getOptions())
         painter.end()
 
         EKritaNode.fromQPixmap(newLayer, pixmap)

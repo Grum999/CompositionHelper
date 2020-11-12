@@ -34,6 +34,7 @@ class CHHelpers:
     OPTION_FLIPV = 'flipV'
     OPTION_FLIPH = 'flipH'
     OPTION_FORCE_GR ='forceGR'
+    OPTION_USE_SELECTION ='useSelection'
 
 
 class CHHelpersDef:
@@ -42,7 +43,7 @@ class CHHelpersDef:
             CHHelpers.GOLDEN_RECTANGLE: {
                                         'label': i18n('Golden rectangle'),
                                         'options': {
-                                                'available': [],
+                                                'available': [CHHelpers.OPTION_USE_SELECTION],
                                                 'default':   [],
                                                 'forced':    [CHHelpers.OPTION_FORCE_GR]
                                             }
@@ -50,7 +51,7 @@ class CHHelpersDef:
             CHHelpers.GOLDEN_SPIRAL: {
                                         'label': i18n('Golden spiral'),
                                         'options': {
-                                                'available': [CHHelpers.OPTION_FLIPV, CHHelpers.OPTION_FLIPH],
+                                                'available': [CHHelpers.OPTION_FLIPV, CHHelpers.OPTION_FLIPH, CHHelpers.OPTION_USE_SELECTION],
                                                 'default':   [],
                                                 'forced':    [CHHelpers.OPTION_FORCE_GR]
                                             }
@@ -58,7 +59,7 @@ class CHHelpersDef:
             CHHelpers.GOLDEN_SPIRAL_SECTION: {
                                         'label': i18n('Golden spiral section'),
                                         'options': {
-                                                'available': [CHHelpers.OPTION_FLIPV, CHHelpers.OPTION_FLIPH],
+                                                'available': [CHHelpers.OPTION_FLIPV, CHHelpers.OPTION_FLIPH, CHHelpers.OPTION_USE_SELECTION],
                                                 'default':   [],
                                                 'forced':    [CHHelpers.OPTION_FORCE_GR]
                                             }
@@ -66,7 +67,7 @@ class CHHelpersDef:
             CHHelpers.GOLDEN_TRIANGLES: {
                                         'label': i18n('Golden triangles'),
                                         'options': {
-                                                'available': [CHHelpers.OPTION_FORCE_GR, CHHelpers.OPTION_FLIPV, CHHelpers.OPTION_FLIPH],
+                                                'available': [CHHelpers.OPTION_FORCE_GR, CHHelpers.OPTION_FLIPV, CHHelpers.OPTION_FLIPH, CHHelpers.OPTION_USE_SELECTION],
                                                 'default':   [CHHelpers.OPTION_FORCE_GR],
                                                 'forced':    []
                                             }
@@ -74,7 +75,7 @@ class CHHelpersDef:
             CHHelpers.GOLDEN_DIAGONALS: {
                                         'label': i18n('Golden diagonals'),
                                         'options': {
-                                                'available': [CHHelpers.OPTION_FORCE_GR],
+                                                'available': [CHHelpers.OPTION_FORCE_GR, CHHelpers.OPTION_USE_SELECTION],
                                                 'default':   [],
                                                 'forced':    []
                                             }
@@ -82,7 +83,7 @@ class CHHelpersDef:
             CHHelpers.GOLDEN_SECTION: {
                                         'label': i18n('Golden section'),
                                         'options': {
-                                                'available': [CHHelpers.OPTION_FORCE_GR],
+                                                'available': [CHHelpers.OPTION_FORCE_GR, CHHelpers.OPTION_USE_SELECTION],
                                                 'default':   [],
                                                 'forced':    []
                                             }
@@ -90,7 +91,7 @@ class CHHelpersDef:
             CHHelpers.RULE_OF_THIRD: {
                                         'label': i18n('Rule of thirds'),
                                         'options': {
-                                                'available': [CHHelpers.OPTION_FORCE_GR],
+                                                'available': [CHHelpers.OPTION_FORCE_GR, CHHelpers.OPTION_USE_SELECTION],
                                                 'default':   [],
                                                 'forced':    []
                                             }
@@ -98,7 +99,7 @@ class CHHelpersDef:
             CHHelpers.BASIC_CROSS: {
                                         'label': i18n('Basic cross'),
                                         'options': {
-                                                'available': [],
+                                                'available': [CHHelpers.OPTION_USE_SELECTION],
                                                 'default':   [],
                                                 'forced':    []
                                             }
@@ -106,7 +107,7 @@ class CHHelpersDef:
             CHHelpers.BASIC_DIAGONALS: {
                                         'label': i18n('Basic diagonals'),
                                         'options': {
-                                                'available': [CHHelpers.OPTION_FORCE_GR],
+                                                'available': [CHHelpers.OPTION_FORCE_GR, CHHelpers.OPTION_USE_SELECTION],
                                                 'default':   [],
                                                 'forced':    []
                                             }
