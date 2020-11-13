@@ -68,7 +68,7 @@ Currently don't kwow if plugin works on Windows and MacOs, but as plugin don't u
 ## Plugin's life
 
 ### What's new?
-_[2020-11-01] Version 1.0.0_ *[Show detailed release content](https://github.com/Grum999/BuliCommander/blob/master/releases-notes/RELEASE-1.0.0.md)*
+_[2020-11-13] Version 1.0.0_ *[Show detailed release content](https://github.com/Grum999/CompositionHelper/blob/main/releases-notes/RELEASE-1.0.0.md)*
 
 - First implemented/released version!
 
