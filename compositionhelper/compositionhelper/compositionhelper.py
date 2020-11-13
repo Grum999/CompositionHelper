@@ -16,7 +16,7 @@
 # along with this program.
 # If not, see https://www.gnu.org/licenses/
 # -----------------------------------------------------------------------------
-# A Krita plugin designed to manage documents
+# A Krita plugin designed to add composition helper in documents
 # -----------------------------------------------------------------------------
 
 import os
@@ -76,7 +76,7 @@ else:
 
 
 EXTENSION_ID = 'pykrita_compositionhelper'
-PLUGIN_VERSION = '1.0.1'
+PLUGIN_VERSION = '1.0.2'
 PLUGIN_MENU_ENTRY = 'Composition Helper'
 
 REQUIRED_KRITA_VERSION = (4, 4, 0)
