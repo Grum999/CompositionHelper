@@ -9,26 +9,32 @@ An plugin for [Krita](https://krita.org).
 
 It allows to easily create layers with most common composition helpers:
 - Rule of third
-- Golden sections
+- Golden section
 - Golden spiral
-- Golden triangle
-- Divine proportion
-- Some basic grids
+- ...
 
 
 
 ## Screenshots
 
+![Export file list](https://github.com/Grum999/CompositionHelper/raw/main/screenshots/main.png)
 
 
 ## Functionalities
 
 Here a list of some functionalities:
-- Different type of composition helpers
+- Different models of composition helpers
 - Choice of line style, color, width
 - Preview
 
-As *Composition Helper* plugin use native [Krita](https://krita.org) layers, many differents helpers can be added, and then easily managed (deletion, visiblity, opacity...)
+![Export file list](https://github.com/Grum999/CompositionHelper/raw/main/screenshots/r1-0-0_main_example.png)
+
+As *Composition Helper* plugin use native [Krita](https://krita.org) layers, many differents helpers can be added and then, easily managed (deletion, visiblity, opacity...)
+
+> **Notes:**
+> - Please be aware that *group layer* named `CH# Composition Helpers` is created by plugin and, if you delete or rename it, plugin will recreate it on next helper added :-)
+> - If more than on *group layer* named `CH# Composition Helpers` is found, the first one is used
+
 
 ## Download, Install & Execute
 
@@ -62,21 +68,23 @@ Currently don't kwow if plugin works on Windows and MacOs, but as plugin don't u
 ## Plugin's life
 
 ### What's new?
-_[2020-11-01] Version 1.0.0_
-
-*[Show detailed release content](https://github.com/Grum999/BuliCommander/blob/master/releases-notes/RELEASE-1.0.0.md)*
+_[2020-11-01] Version 1.0.0_ *[Show detailed release content](https://github.com/Grum999/BuliCommander/blob/master/releases-notes/RELEASE-1.0.0.md)*
 
 - First implemented/released version!
 
 
 
 ### Bugs
-Don't know if any exists :-)
+
+Yes!
+Currently, if you create a layer named `CH# Composition Helpers` that is not a *group layer*, you can't add helper...
 
 
 
 ### What’s next?
-Currently, I don't really have improvments in my mind.
+
+Currently, maybe than using paint layer to build helper, use of vector layer could be an option.
+I keep it for the boring days :)
 
 
 ## License
