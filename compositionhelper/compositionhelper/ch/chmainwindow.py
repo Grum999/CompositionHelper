@@ -216,7 +216,9 @@ class CHMainWindow(QDialog):
         self.cbForceGR.toggled.connect(self.__updatePreview)
         self.cbFlipH.toggled.connect(self.__updatePreview)
         self.cbFlipV.toggled.connect(self.__updatePreview)
+
         self.cbUseSelection.toggled.connect(self.__updatePreview)
+        self.cbUseSelection.setEnabled(False)
 
         # button 'add'
         self.pbAdd.clicked.connect(self.addHelperLayer)
@@ -496,7 +498,7 @@ class CHMainWindow(QDialog):
 
         # define drawing area
         drawRect = self.__documentResized.rect()
-        if self.cbUseSelection.isEnabled() and self.cbUseSelection.isChecked():
+        if not self.__documentSelection is None and self.cbUseSelection.isEnabled() and self.cbUseSelection.isChecked():
             drawRect = QRect(int(self.__documentRatio * self.__documentSelection.x()),
                              int(self.__documentRatio * self.__documentSelection.y()),
                              int(self.__documentRatio * self.__documentSelection.width()),
