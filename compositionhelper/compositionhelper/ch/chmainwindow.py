@@ -210,7 +210,7 @@ class CHMainWindow(QDialog):
         self.cbxLineStyle.currentIndexChanged.connect(self.__updatePreview)
 
         # set line color button
-        self.pbLineColor.clicked.connect(self.__updatePreview)
+        self.pbLineColor.colorChanged.connect(self.__updatePreview)
 
         # options
         self.cbForceGR.toggled.connect(self.__updatePreview)
