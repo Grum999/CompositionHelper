@@ -16,7 +16,7 @@
 # along with this program.
 # If not, see https://www.gnu.org/licenses/
 # -----------------------------------------------------------------------------
-# A Krita plugin designed to manage documents
+# A Krita plugin designed to add composition helper in documents
 # -----------------------------------------------------------------------------
 
 class CHHelpers:
