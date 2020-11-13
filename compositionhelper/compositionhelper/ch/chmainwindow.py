@@ -16,7 +16,7 @@
 # along with this program.
 # If not, see https://www.gnu.org/licenses/
 # -----------------------------------------------------------------------------
-# A Krita plugin designed to manage documents
+# A Krita plugin designed to add composition helper in documents
 # -----------------------------------------------------------------------------
 
 import os
@@ -210,7 +210,7 @@ class CHMainWindow(QDialog):
         self.cbxLineStyle.currentIndexChanged.connect(self.__updatePreview)
 
         # set line color button
-        self.pbLineColor.clicked.connect(self.__updatePreview)
+        self.pbLineColor.colorChanged.connect(self.__updatePreview)
 
         # options
         self.cbForceGR.toggled.connect(self.__updatePreview)
