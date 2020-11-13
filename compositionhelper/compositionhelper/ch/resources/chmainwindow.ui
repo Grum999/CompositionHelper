@@ -76,7 +76,7 @@
             </font>
            </property>
            <property name="styleSheet">
-            <string notr="true">margin-left: 30px;</string>
+            <string notr="true"/>
            </property>
            <property name="text">
             <string>Style</string>
@@ -87,12 +87,19 @@
           <widget class="QLabel" name="lblOptions">
            <property name="font">
             <font>
+             <pointsize>12</pointsize>
              <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: palette(light);padding: 6;</string>
+           </property>
            <property name="text">
             <string>Options</string>
+           </property>
+           <property name="margin">
+            <number>4</number>
            </property>
           </widget>
          </item>
@@ -102,7 +109,7 @@
             <string>When checked, constrain helper to respect Golden number ratio</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">margin-left: 30px;</string>
+            <string notr="true"/>
            </property>
            <property name="text">
             <string>Force golden ratio</string>
@@ -113,12 +120,19 @@
           <widget class="QLabel" name="label_3">
            <property name="font">
             <font>
+             <pointsize>12</pointsize>
              <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: palette(light);padding: 6;</string>
+           </property>
            <property name="text">
             <string>Line properties</string>
+           </property>
+           <property name="margin">
+            <number>4</number>
            </property>
           </widget>
          </item>
@@ -130,7 +144,7 @@
             </font>
            </property>
            <property name="styleSheet">
-            <string notr="true">margin-left: 30px;</string>
+            <string notr="true"/>
            </property>
            <property name="text">
             <string>Color</string>
@@ -213,7 +227,7 @@
             <string>Flip helper horizontally (vertical axis)</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">margin-left: 30px;</string>
+            <string notr="true"/>
            </property>
            <property name="text">
             <string>Flip horizontally</string>
@@ -239,7 +253,7 @@
             <string>Flip helper vertically (horizontal axis)</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">margin-left: 30px;</string>
+            <string notr="true"/>
            </property>
            <property name="text">
             <string>Flip vertically</string>
@@ -270,12 +284,19 @@
           <widget class="QLabel" name="label_2">
            <property name="font">
             <font>
+             <pointsize>12</pointsize>
              <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: palette(light);padding: 6;</string>
+           </property>
            <property name="text">
-            <string>Helper</string>
+            <string>Helper model</string>
+           </property>
+           <property name="margin">
+            <number>4</number>
            </property>
           </widget>
          </item>
@@ -287,7 +308,7 @@
             </font>
            </property>
            <property name="styleSheet">
-            <string notr="true">margin-left: 30px;</string>
+            <string notr="true"/>
            </property>
            <property name="text">
             <string>Width</string>
@@ -300,7 +321,7 @@
             <string>When checked, if a selection exist, use selection bounds to render helper</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">margin-left: 30px;</string>
+            <string notr="true"/>
            </property>
            <property name="text">
             <string>Use current selection</string>
