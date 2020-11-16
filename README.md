@@ -39,7 +39,7 @@ As *Composition Helper* plugin use native [Krita](https://krita.org) layers, man
 ## Download, Install & Execute
 
 ### Download
-+ **[ZIP ARCHIVE - v1.0.2](https://github.com/Grum999/CompositionHelper/releases/download/1.0.2/compositionhelper.zip)**
++ **[ZIP ARCHIVE - v1.0.3](https://github.com/Grum999/CompositionHelper/releases/download/1.0.3/compositionhelper.zip)**
 + **[SOURCE](https://github.com/Grum999/CompositionHelper)**
 
 
@@ -68,6 +68,10 @@ Currently don't kwow if plugin works on Windows and MacOs, but as plugin don't u
 ## Plugin's life
 
 ### What's new?
+
+_[2020-11-16] Version 1.0.3_
+
+- Plugin is now able to work with document for which color space is not RGBA 8bit/channels (don't crash Krita anymore)
 
 _[2020-11-13] Version 1.0.2_
 
