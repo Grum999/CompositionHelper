@@ -412,7 +412,6 @@ class EKritaNode:
             raise EInvalidType("Given `layerNode` must be a valid <Document>")
 
         shapes=[shape for shape in layerNode.shapes()]
-        print('fromSVG, shapes:1', shapes)
 
         activeNode=document.activeNode()
         document.setActiveNode(layerNode)
@@ -430,6 +429,7 @@ class EKritaNode:
 
         mimeContent=QMimeData()
         mimeContent.setData('image/svg', svgContent)
+        mimeContent.setData('BCIGNORE', b'')
         QGuiApplication.clipboard().setMimeData(mimeContent)
         Krita.instance().action('edit_paste').trigger()
 
