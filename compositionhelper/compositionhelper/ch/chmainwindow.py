@@ -30,6 +30,14 @@ from PyQt5.QtWidgets import (
         QWidget
     )
 
+try:
+    from PyQt5.QtSvg import *
+    QTSVG_AVAILABLE = True
+except:
+    # vector layer won't be an option...
+    QTSVG_AVAILABLE = False
+
+
 from .chhelpers import (
         CHHelpers,
         CHHelpersDef
@@ -219,6 +227,9 @@ class CHMainWindow(QDialog):
 
         self.cbUseSelection.toggled.connect(self.__updatePreview)
         self.cbUseSelection.setEnabled(False)
+
+        self.cbAddAsVectorLayer.setVisible(QTSVG_AVAILABLE)
+        self.cbAddAsVectorLayer.setChecked(QTSVG_AVAILABLE and self.__settings.option(CHSettingsKey.HELPER_ADD_AS_VL.id()))
 
         # button 'add'
         self.pbAdd.clicked.connect(self.addHelperLayer)
@@ -545,6 +556,7 @@ class CHMainWindow(QDialog):
             self.__documentPreview = None
             self.__documentResized = None
 
+
     def __updateDocumentSelection(self, selection=None):
         document = Krita.instance().activeDocument()
         if not document is None and not (selection:=document.selection()) is None:
@@ -679,36 +691,61 @@ class CHMainWindow(QDialog):
             groupNode = document.createGroupLayer(CHMainWindow.__LAYER_GROUP)
             document.rootNode().addChildNode(groupNode, None)
 
-        newLayer = document.createNode(CHHelpersDef.HELPERS[helperId]['label'], "paintLayer")
+        rasterMode = True
 
-        pixmap = QPixmap(self.__documentPreview.size())
-        pixmap.fill(Qt.transparent)
+        if QTSVG_AVAILABLE and self.cbAddAsVectorLayer.isChecked():
+            rasterMode=False
 
-        drawRect = pixmap.rect()
+        if rasterMode:
+            newLayer = document.createNode(CHHelpersDef.HELPERS[helperId]['label'], "paintLayer")
+            pixmap = QPixmap(self.__documentPreview.size())
+            pixmap.fill(Qt.transparent)
+            drawRect = pixmap.rect()
+            painter = QPainter(pixmap)
+        else:
+            newLayer = document.createVectorLayer(CHHelpersDef.HELPERS[helperId]['label'])
+
+            w = document.width()
+            h = document.height()
+
+            drawRect=QRectF(0, 0, w, h)
+
+            buffer = QBuffer()
+            svgGenerator = QSvgGenerator()
+            svgGenerator.setOutputDevice(buffer)
+            svgGenerator.setResolution(int(document.xRes()))
+            svgGenerator.setSize(QSize(int(w), int(h)))
+            svgGenerator.setViewBox(drawRect)
+            painter = QPainter(svgGenerator)
+
         if self.cbUseSelection.isEnabled() and self.cbUseSelection.isChecked():
             drawRect = self.__documentSelection
 
         pen = self.__getPen()
 
-        painter = QPainter()
-        painter.begin(pixmap)
+        #painter.begin(pixmap)
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setPen(pen)
         self.__paintHelper(helperId, painter, drawRect, self.__getOptions())
         painter.end()
 
-        EKritaNode.fromQPixmap(newLayer, pixmap)
+        if rasterMode:
+            EKritaNode.fromQPixmap(newLayer, pixmap)
+            groupNode.addChildNode(newLayer, None)
+        else:
+            groupNode.addChildNode(newLayer, None)
+            svgContent=bytes(buffer.buffer())
+            EKritaNode.fromSVG(newLayer, svgContent, document)
 
-        groupNode.addChildNode(newLayer, None)
         document.refreshProjection()
         self.__updateDocumentPreview()
 
         # also update settings when a layers is added (keep in memory that for current helper, the
         # prefered values are current values)
         self.__settings.setOption(CHSettingsKey.HELPER_LAST_USED.id(), helperId)
+        self.__settings.setOption(CHSettingsKey.HELPER_ADD_AS_VL.id(), self.cbAddAsVectorLayer.isChecked())
         self.__settings.setOption(CHSettingsKey.HELPER_LINE_COLOR.id(helperId=helperId), pen.color().name(QColor.HexArgb))
         self.__settings.setOption(CHSettingsKey.HELPER_LINE_STYLE.id(helperId=helperId), pen.style())
         self.__settings.setOption(CHSettingsKey.HELPER_LINE_WIDTH.id(helperId=helperId), pen.widthF())
         self.__settings.setOption(CHSettingsKey.HELPER_OPTIONS.id(helperId=helperId), self.__getOptions(True))
         self.__settings.saveConfig()
-

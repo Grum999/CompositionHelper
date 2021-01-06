@@ -38,10 +38,14 @@ from krita import (
 
 from PyQt5.QtCore import (
         QByteArray,
+        QEventLoop,
+        QMimeData,
         QPoint,
-        QRect
+        QRect,
+        QTimer
     )
 from PyQt5.QtGui import (
+        QGuiApplication,
         QImage,
         QPixmap
     )
@@ -238,6 +242,12 @@ class EKritaNode:
 
     __projectionMode = ProjectionMode.AUTO
 
+    @staticmethod
+    def __sleep(value):
+        """Sleep for given number of milliseconds"""
+        loop = QEventLoop()
+        QTimer.singleShot(value, loop.quit)
+        loop.exec()
 
     @staticmethod
     def path(layerNode):
@@ -370,6 +380,62 @@ class EKritaNode:
 
         EKritaNode.fromQImage(layerNode, pixmap.toImage(), position)
 
+    @staticmethod
+    def fromSVG(layerNode, svgContent, document=None):
+        """Paste given `svgContent` to `position` in '`layerNode`
+
+        Given `layerNode` must be a 'vectorlayer'
+
+        The `position` value can be:
+        - None, in this case, pixmap will be pasted at position (0, 0)
+        - A QPoint() object, pixmap will be pasted at defined position
+
+        Note:
+        - If document is None, consider that active document contains layer
+        - If document is provided, it must contains layerNode
+
+        Method return a list of shapes (shape inserted into layer)
+        """
+        if isinstance(svgContent, str):
+            svgContent=svgContent.encode()
+
+        if not isinstance(svgContent, bytes):
+            raise EInvalidType("Given `svgContent` must be a valid <str> or <bytes> SVG document")
+
+        if not isinstance(layerNode, Node) or layerNode.type()!='vectorlayer':
+            raise EInvalidType("Given `layerNode` must be a valid <VectorLayer>")
+
+        if document is None:
+            document=Krita.instance().activeDocument()
+
+        if not isinstance(document, Document):
+            raise EInvalidType("Given `layerNode` must be a valid <Document>")
+
+        shapes=[shape for shape in layerNode.shapes()]
+        print('fromSVG, shapes:1', shapes)
+
+        activeNode=document.activeNode()
+        document.setActiveNode(layerNode)
+        document.waitForDone()
+
+        # Note: following sleep() is here because waitForDone() doesn't seems to
+        #       wait for active node changed...
+        #       set an arbitrary sleep() delay allows to ensure that node is active
+        #       at the end of method execution
+        #       hope current delay is not too short (works for me... but can't put
+        #       a too long delay)
+        #
+        #       Problem occurs with krita 4.4.2 & and tested Krita plus/next tested [2020-01-05]
+        EKritaNode.__sleep(100)
+
+        mimeContent=QMimeData()
+        mimeContent.setData('image/svg', svgContent)
+        QGuiApplication.clipboard().setMimeData(mimeContent)
+        Krita.instance().action('edit_paste').trigger()
+
+        newShapes=[shape for shape in layerNode.shapes() if not shape in shapes]
+
+        return newShapes
 
     @staticmethod
     def above(layerNode):
@@ -412,6 +478,3 @@ class EKritaNode:
             prevNode = layer
 
         return None
-
-
-

@@ -92,6 +92,7 @@ class CHSettingsFmt(object):
 
 class CHSettingsKey(Enum):
     HELPER_LAST_USED =               'helper.global.lastUsed'
+    HELPER_ADD_AS_VL =               'helper.global.addAsVectorLayer'
     HELPER_LINE_COLOR =              'helper.style.{helperId}.line.color'
     HELPER_LINE_WIDTH =              'helper.style.{helperId}.line.width'
     HELPER_LINE_STYLE =              'helper.style.{helperId}.line.style'
@@ -127,7 +128,8 @@ class CHSettings(object):
             # values are tuples:
             # [0]       = default value
             # [1..n]    = values types & accepted values
-            CHSettingsKey.HELPER_LAST_USED.id():                                        (CHHelpers.GOLDEN_RECTANGLE,                            CHSettingsFmt(str, helperIds))
+            CHSettingsKey.HELPER_LAST_USED.id():                                        (CHHelpers.GOLDEN_RECTANGLE,                            CHSettingsFmt(str, helperIds)),
+            CHSettingsKey.HELPER_ADD_AS_VL.id():                                        (True,                                                  CHSettingsFmt(bool))
         }
 
         for helperId in helperIds:
@@ -275,4 +277,3 @@ class CHSettings(object):
 
     def options(self):
         return self.__config
-
