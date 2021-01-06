@@ -39,7 +39,7 @@ As *Composition Helper* plugin use native [Krita](https://krita.org) layers, man
 ## Download, Install & Execute
 
 ### Download
-+ **[ZIP ARCHIVE - v1.0.3](https://github.com/Grum999/CompositionHelper/releases/download/1.0.3/compositionhelper.zip)**
++ **[ZIP ARCHIVE - v1.1.0](https://github.com/Grum999/CompositionHelper/releases/download/1.1.0/compositionhelper.zip)**
 + **[SOURCE](https://github.com/Grum999/CompositionHelper)**
 
 
@@ -69,6 +69,10 @@ Currently don't kwow if plugin works on Windows and MacOs, but as plugin don't u
 
 ### What's new?
 
+_[2021-01-06] Version 1.1.0_ *[Show detailed release content](https://github.com/Grum999/CompositionHelper/blob/main/releases-notes/RELEASE-1.1.0.md)*
+
+- Add option to add helpers as Vector layers instead of Paint layers
+
 _[2020-11-16] Version 1.0.3_
 
 - Plugin is now able to work with document for which color space is not RGBA 8bit/channels (don't crash Krita anymore)
@@ -96,8 +100,8 @@ Currently, if you create a layer named `CH# Composition Helpers` that is not a *
 
 ### What’s next?
 
-Currently, maybe than using paint layer to build helper, use of vector layer could be an option.
-I keep it for the boring days :)
+Currently, nothing :-)
+Any idea are welcome.
 
 
 ## License
