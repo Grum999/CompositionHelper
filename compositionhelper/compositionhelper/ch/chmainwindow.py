@@ -277,7 +277,7 @@ class CHMainWindow(QDialog):
         pixmap.fill(Qt.transparent)
 
         pen = QPen(Qt.SolidLine)
-        pen.setWidth(1.5)
+        pen.setWidthF(1.5)
         pen.setColor(self.__palette.color(QPalette.ButtonText))
 
         painter = QPainter()

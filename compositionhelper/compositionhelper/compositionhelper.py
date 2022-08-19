@@ -76,7 +76,7 @@ else:
 
 
 EXTENSION_ID = 'pykrita_compositionhelper'
-PLUGIN_VERSION = '1.1.1'
+PLUGIN_VERSION = '1.1.2'
 PLUGIN_MENU_ENTRY = 'Composition Helper'
 
 REQUIRED_KRITA_VERSION = (4, 4, 0)
