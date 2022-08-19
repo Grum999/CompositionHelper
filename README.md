@@ -68,9 +68,9 @@ Currently don't kwow if plugin works on Windows and MacOs, but as plugin don't u
 
 ### What's new?
 
-_[2022-08-19] Version 1.1.2_
+_[2022-08-19] Version 1.1.2_ *[Show detailed release content](https://github.com/Grum999/CompositionHelper/blob/main/releases-notes/RELEASE-1.1.2.md)*
 
-- Fix bug #1 for some Krita Linux installation (not using appimage)
+- Fix bug for some Krita Linux installation (not using appimage)
 
 _[2021-01-06] Version 1.1.1_
 
