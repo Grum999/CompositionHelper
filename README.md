@@ -17,8 +17,7 @@ It allows to easily create layers with most common composition helpers:
 
 ## Screenshots
 
-![Export file list](https://github.com/Grum999/CompositionHelper/raw/main/screenshots/main.png)
-
+![Export file list](./screenshots/main.png)
 
 ## Functionalities
 
@@ -27,7 +26,7 @@ Here a list of some functionalities:
 - Choice of line style, color, width
 - Preview
 
-![Export file list](https://github.com/Grum999/CompositionHelper/raw/main/screenshots/r1-0-0_main_example.png)
+![Export file list](./screenshots/r1-0-0_main_example.png)
 
 As *Composition Helper* plugin use native [Krita](https://krita.org) layers, many differents helpers can be added and then, easily managed (deletion, visiblity, opacity...)
 
@@ -39,7 +38,7 @@ As *Composition Helper* plugin use native [Krita](https://krita.org) layers, man
 ## Download, Install & Execute
 
 ### Download
-+ **[ZIP ARCHIVE - v1.1.1](https://github.com/Grum999/CompositionHelper/releases/download/1.1.1/compositionhelper.zip)**
++ **[ZIP ARCHIVE - v1.1.2](https://github.com/Grum999/CompositionHelper/releases/download/1.1.2/compositionhelper.zip)**
 + **[SOURCE](https://github.com/Grum999/CompositionHelper)**
 
 
@@ -68,6 +67,10 @@ Currently don't kwow if plugin works on Windows and MacOs, but as plugin don't u
 ## Plugin's life
 
 ### What's new?
+
+_[2022-08-19] Version 1.1.2_
+
+- Fix bug #1 for some Krita Linux installation (not using appimage)
 
 _[2021-01-06] Version 1.1.1_
 
