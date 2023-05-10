@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Composition Helper
 # Copyright (C) 2020 - Grum999
 # -----------------------------------------------------------------------------
@@ -71,7 +71,7 @@ class CHSettingsFmt(object):
         if not isinstance(value, checkType):
             raise EInvalidType(f'Given `value` ({value}) is not from expected type ({checkType})')
 
-        if not self.__values is None:
+        if self.__values is not None:
             if isinstance(value, list) or isinstance(value, tuple):
                 # need to check all items
                 if isinstance(self.__values, type):
@@ -83,7 +83,7 @@ class CHSettingsFmt(object):
                     for item in value:
                         self.check(item)
             elif isinstance(self.__values, list) or isinstance(self.__values, tuple):
-                if not value in self.__values:
+                if value not in self.__values:
                     raise EInvalidValue('Given `value` ({0}) is not in authorized perimeter ({1})'.format(value, self.__values))
             elif isinstance(self.__values, re.Pattern):
                 if self.__values.match(value) is None:
@@ -118,24 +118,25 @@ class CHSettings(object):
         if pluginId is None or pluginId == '':
             pluginId = 'compositionhelper'
 
-        helperIds=list(CHHelpersDef.HELPERS.keys())
+        helperIds = list(CHHelpersDef.HELPERS.keys())
 
         self.__pluginCfgFile = os.path.join(QStandardPaths.writableLocation(QStandardPaths.GenericConfigLocation), f'krita-plugin-{pluginId}rc.json')
         self.__config = {}
 
-        # define current rules for options
+        # define current rules for options
         self.__rules = {
             # values are tuples:
             # [0]       = default value
             # [1..n]    = values types & accepted values
-            CHSettingsKey.HELPER_LAST_USED.id():                                        (CHHelpers.GOLDEN_RECTANGLE,                            CHSettingsFmt(str, helperIds)),
-            CHSettingsKey.HELPER_ADD_AS_VL.id():                                        (True,                                                  CHSettingsFmt(bool))
+            CHSettingsKey.HELPER_LAST_USED.id():                                        (CHHelpers.GOLDEN_RECTANGLE,                    CHSettingsFmt(str, helperIds)),
+            CHSettingsKey.HELPER_ADD_AS_VL.id():                                        (True,                                          CHSettingsFmt(bool))
         }
 
         for helperId in helperIds:
-            self.__rules[CHSettingsKey.HELPER_LINE_COLOR.id(helperId=helperId)] =       ('#ff00aa00',                                           CHSettingsFmt(str))
-            self.__rules[CHSettingsKey.HELPER_LINE_WIDTH.id(helperId=helperId)] =       (2.0,                                                   CHSettingsFmt(float))
-            self.__rules[CHSettingsKey.HELPER_LINE_STYLE.id(helperId=helperId)] =       (Qt.SolidLine,                                          CHSettingsFmt(int, CHSettings.VALID_LINE_STYLES))
+            self.__rules[CHSettingsKey.HELPER_LINE_COLOR.id(helperId=helperId)] =       ('#ff00aa00',                                   CHSettingsFmt(str))
+            self.__rules[CHSettingsKey.HELPER_LINE_WIDTH.id(helperId=helperId)] =       (2.0,                                           CHSettingsFmt(float))
+            self.__rules[CHSettingsKey.HELPER_LINE_STYLE.id(helperId=helperId)] =       (Qt.SolidLine,                                  CHSettingsFmt(int,
+                                                                                                                                                      CHSettings.VALID_LINE_STYLES))
             self.__rules[CHSettingsKey.HELPER_OPTIONS.id(helperId=helperId)] =          (CHHelpersDef.HELPERS[helperId]['options']['default'],  CHSettingsFmt(list))
 
         self.setDefaultConfig()
@@ -235,8 +236,8 @@ class CHSettings(object):
         if isinstance(id, CHSettingsKey):
             id = id.id()
 
-        if not isinstance(id, str) or not id in self.__rules:
-            #raise EInvalidValue(f'Given `id` is not valid: {id}')
+        if not isinstance(id, str) or id not in self.__rules:
+            # raise EInvalidValue(f'Given `id` is not valid: {id}')
             Debug.print('[CHSettings.setOption] Given id `{0}` is not valid', id)
             return
 
@@ -245,7 +246,7 @@ class CHSettings(object):
         if len(rules) > 1:
             # value must be a list
             if not isinstance(value, list):
-                #raise EInvalidType(f'Given `value` must be a list: {value}')
+                # raise EInvalidType(f'Given `value` must be a list: {value}')
                 Debug.print('[CHSettings.setOption] Given value for id `{1}` must be a list: `{0}`', value, id)
                 return
 
@@ -254,13 +255,13 @@ class CHSettings(object):
                 Debug.print('[CHSettings.setOption] Given value for id `{1}` is not a valid list: `{0}`', value, id)
                 return
 
-            # check if each item match corresponding rule
+            # check if each item match corresponding rule
             for index in range(len(value)):
                 rules[index].check(value[index])
         else:
             rules[0].check(value)
 
-        # value is valid, set it
+        # value is valid, set it
         self.__setValue(self.__config, id, value)
 
     def option(self, id):
@@ -269,9 +270,8 @@ class CHSettings(object):
         if isinstance(id, CHSettingsKey):
             id = id.id()
 
-        if not isinstance(id, str) or not id in self.__rules:
+        if not isinstance(id, str) or id not in self.__rules:
             raise EInvalidValue(f'Given `id` is not valid: {id}')
-
 
         return self.__getValue(self.__config, id)
 

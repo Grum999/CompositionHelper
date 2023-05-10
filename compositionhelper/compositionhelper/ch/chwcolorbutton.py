@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Composition Helper
 # Copyright (C) 2020 - Grum999
 # -----------------------------------------------------------------------------
@@ -33,6 +33,7 @@ from PyQt5.QtWidgets import (
         QPushButton,
     )
 
+
 class CHWColorButton(QPushButton):
     """A button to choose color"""
     colorChanged = Signal(QColor)
@@ -53,19 +54,19 @@ class CHWColorButton(QPushButton):
         self.__alphaChannel = True
 
         self.setText("")
-        self.setText=newSetText
+        self.setText = newSetText
 
     def __checkerBoardBrush(self, size=32):
         """Return a checker board brush"""
-        tmpPixmap = QPixmap(size,size)
-        tmpPixmap.fill(QColor(255,255,255))
-        brush = QBrush(QColor(220,220,220))
+        tmpPixmap = QPixmap(size, size)
+        tmpPixmap.fill(QColor(255, 255, 255))
+        brush = QBrush(QColor(220, 220, 220))
 
         canvas = QPainter()
         canvas.begin(tmpPixmap)
         canvas.setPen(Qt.NoPen)
 
-        s1 = size>>1
+        s1 = size >> 1
         s2 = size - s1
 
         canvas.setRenderHint(QPainter.Antialiasing, False)
@@ -79,11 +80,11 @@ class CHWColorButton(QPushButton):
         super(CHWColorButton, self).paintEvent(event)
 
         margin = ceil(self.height()/2)//2
-        margin2 = margin<<1
+        margin2 = margin << 1
         if not self.icon().isNull():
-            rect=QRect(margin, self.height() - margin//2 - 4, self.width() - margin2, margin//2)
+            rect = QRect(margin, self.height() - margin//2 - 4, self.width() - margin2, margin//2)
         else:
-            rect=QRect(margin, margin, self.width() - margin2,  self.height() - margin2)
+            rect = QRect(margin, margin, self.width() - margin2,  self.height() - margin2)
 
         painter = QPainter(self)
         painter.fillRect(rect, self.__cbBrush)
@@ -93,7 +94,7 @@ class CHWColorButton(QPushButton):
 
     def mouseReleaseEvent(self, event):
         if self.__alphaChannel:
-            options = QColorDialog.ShowAlphaChannel|QColorDialog.DontUseNativeDialog
+            options = QColorDialog.ShowAlphaChannel | QColorDialog.DontUseNativeDialog
         else:
             options = QColorDialog.DontUseNativeDialog
 
@@ -118,5 +119,5 @@ class CHWColorButton(QPushButton):
 
     def setAlphaChannel(self, value):
         """Set if alpha channel is managed or not"""
-        self.__alphaChannel=value
+        self.__alphaChannel = value
 
