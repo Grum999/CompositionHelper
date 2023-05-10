@@ -38,7 +38,7 @@ As *Composition Helper* plugin use native [Krita](https://krita.org) layers, man
 ## Download, Install & Execute
 
 ### Download
-+ **[ZIP ARCHIVE - v1.1.2](https://github.com/Grum999/CompositionHelper/releases/download/1.1.2/compositionhelper.zip)**
++ **[ZIP ARCHIVE - v1.1.3](https://github.com/Grum999/CompositionHelper/releases/download/1.1.3/compositionhelper.zip)**
 + **[SOURCE](https://github.com/Grum999/CompositionHelper)**
 
 
@@ -67,6 +67,9 @@ Currently don't kwow if plugin works on Windows and MacOs, but as plugin don't u
 ## Plugin's life
 
 ### What's new?
+_[2023-05-09] Version 1.1.3_
+- Fix bug *Krita 5.2.0 Compatibility*
+- Fix bug *First Vector layer not added in composition helper group*
 
 _[2022-08-19] Version 1.1.2_ *[Show detailed release content](https://github.com/Grum999/CompositionHelper/blob/main/releases-notes/RELEASE-1.1.2.md)*
 
