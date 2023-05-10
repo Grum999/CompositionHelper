@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Composition Helper
 # Copyright (C) 2020 - Grum999
 # -----------------------------------------------------------------------------
@@ -30,11 +30,10 @@ class CHHelpers:
     BASIC_CROSS = 'bascross'
     BASIC_DIAGONALS = 'basdiag'
 
-
     OPTION_FLIPV = 'flipV'
     OPTION_FLIPH = 'flipH'
-    OPTION_FORCE_GR ='forceGR'
-    OPTION_USE_SELECTION ='useSelection'
+    OPTION_FORCE_GR = 'forceGR'
+    OPTION_USE_SELECTION = 'useSelection'
 
 
 class CHHelpersDef:

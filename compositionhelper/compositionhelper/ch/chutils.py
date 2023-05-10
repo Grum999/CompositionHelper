@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Composition Helper
 # Copyright (C) 2020 - Grum999
 # -----------------------------------------------------------------------------
@@ -32,6 +32,7 @@ from PyQt5.QtGui import (
         QPixmap
     )
 
+
 # ------------------------------------------------------------------------------
 def strDefault(value, default=''):
     """Return value as str
@@ -41,6 +42,7 @@ def strDefault(value, default=''):
     if value is None or value == '' or value == 0:
         return default
     return str(value)
+
 
 def intDefault(value, default=0):
     """Return value as int
@@ -52,20 +54,21 @@ def intDefault(value, default=0):
 
     try:
         return int(value)
-    except:
+    except Exception:
         return default
+
 
 def checkerBoardBrush(size=32):
     """Return a checker board brush"""
-    tmpPixmap = QPixmap(size,size)
-    tmpPixmap.fill(QColor(255,255,255))
-    brush = QBrush(QColor(220,220,220))
+    tmpPixmap = QPixmap(size, size)
+    tmpPixmap.fill(QColor(255, 255, 255))
+    brush = QBrush(QColor(220, 220, 220))
 
     canvas = QPainter()
     canvas.begin(tmpPixmap)
     canvas.setPen(Qt.NoPen)
 
-    s1 = size>>1
+    s1 = size >> 1
     s2 = size - s1
 
     canvas.setRenderHint(QPainter.Antialiasing, False)
@@ -74,6 +77,7 @@ def checkerBoardBrush(size=32):
     canvas.end()
 
     return QBrush(tmpPixmap)
+
 
 def kritaVersion():
     """Return a dictionary with following values:
@@ -100,7 +104,7 @@ def kritaVersion():
             'rawString': '5.0.0-prealpha (git 8f2fe10)'
         }
     """
-    returned={
+    returned = {
             'major': 0,
             'minor': 0,
             'revision': 0,
@@ -108,15 +112,16 @@ def kritaVersion():
             'git': '',
             'rawString': Krita.instance().version()
         }
-    nfo=re.match("(\d+)\.(\d+)\.(\d+)(?:-([^\s]+)\s\(git\s([^\)]+)\))?", returned['rawString'])
-    if not nfo is None:
-        returned['major']=int(nfo.groups()[0])
-        returned['minor']=int(nfo.groups()[1])
-        returned['revision']=int(nfo.groups()[2])
-        returned['devFlag']=nfo.groups()[3]
-        returned['git']=nfo.groups()[4]
+    nfo = re.match("(\d+)\.(\d+)\.(\d+)(?:-([^\s]+)\s\(git\s([^\)]+)\))?", returned['rawString'])
+    if nfo is not None:
+        returned['major'] = int(nfo.groups()[0])
+        returned['minor'] = int(nfo.groups()[1])
+        returned['revision'] = int(nfo.groups()[2])
+        returned['devFlag'] = nfo.groups()[3]
+        returned['git'] = nfo.groups()[4]
 
     return returned
+
 
 def checkKritaVersion(major, minor, revision):
     """Return True if current version is greater or equal to asked version"""
@@ -124,17 +129,18 @@ def checkKritaVersion(major, minor, revision):
 
     if major is None:
         return True
-    elif nfo['major']==major:
+    elif nfo['major'] == major:
         if minor is None:
             return True
-        elif nfo['minor']==minor:
-            if revision is None or nfo['revision']>=revision:
+        elif nfo['minor'] == minor:
+            if revision is None or nfo['revision'] >= revision:
                 return True
-        elif nfo['minor']>minor:
+        elif nfo['minor'] > minor:
             return True
-    elif nfo['major']>major:
+    elif nfo['major'] > major:
         return True
     return False
+
 
 def loadXmlUi(fileName, parent):
     """Load a ui file PyQt5.uic.loadUi()
@@ -147,10 +153,10 @@ def loadXmlUi(fileName, parent):
         if parent.objectName() == name:
             return parent
 
-        if len(parent.children())>0:
+        if len(parent.children()) > 0:
             for widget in parent.children():
                 searched = findByName(widget, name)
-                if not searched is None:
+                if searched is not None:
                     return searched
 
         return None
@@ -173,10 +179,12 @@ class Debug(object):
             sys.stdout = sys.__stdout__
             print('DEBUG:', value.format(*argv))
 
+    @staticmethod
     def enabled():
         """return if Debug is enabled or not"""
         return Debug.__enabled
 
+    @staticmethod
     def setEnabled(value):
         """set Debug enabled or not"""
-        Debug.__enabled=value
+        Debug.__enabled = value

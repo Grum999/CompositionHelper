@@ -38,7 +38,7 @@ from PyQt5.QtCore import (
     )
 
 if __name__ != '__main__':
-     # script is executed from Krita, loaded as a module
+    # script is executed from Krita, loaded as a module
     __PLUGIN_EXEC_FROM__ = 'KRITA'
 
     from .pktk.pktk import (
@@ -76,10 +76,10 @@ else:
 
 
 EXTENSION_ID = 'pykrita_compositionhelper'
-PLUGIN_VERSION = '1.1.2'
+PLUGIN_VERSION = '1.1.3'
 PLUGIN_MENU_ENTRY = 'Composition Helper'
 
-REQUIRED_KRITA_VERSION = (4, 4, 0)
+REQUIRED_KRITA_VERSION = (5, 2, 0)
 
 
 class CompositionHelper(Extension):
@@ -94,16 +94,13 @@ class CompositionHelper(Extension):
         self.__uiController = None
         self.__isKritaVersionOk = checkKritaVersion(*REQUIRED_KRITA_VERSION)
 
-
     def setup(self):
         """Is executed at Krita's startup"""
         pass
 
-
     def createActions(self, window):
         action = window.createAction(EXTENSION_ID, PLUGIN_MENU_ENTRY, "tools/scripts")
         action.triggered.connect(self.start)
-
 
     def start(self):
         """Execute Composition Helper"""
@@ -111,18 +108,19 @@ class CompositionHelper(Extension):
         # Create dialog box
         if not self.__isKritaVersionOk:
             QMessageBox.information(QWidget(),
-                                      PLUGIN_MENU_ENTRY,
-                                      "At least, Krita version {0} is required to use plugin...".format('.'.join([str(v) for v in REQUIRED_KRITA_VERSION]))
+                                    PLUGIN_MENU_ENTRY,
+                                    "At least, Krita version {0} is required to use plugin...".format('.'.join([str(v) for v in REQUIRED_KRITA_VERSION]))
                                     )
             return
 
         CHMainWindow(PLUGIN_MENU_ENTRY, PLUGIN_VERSION)
+
 
 if __PLUGIN_EXEC_FROM__ == 'SCRIPTER_PLUGIN':
     sys.stdout = sys.__stdout__
 
     # Disconnect signals if any before assigning new signals
 
-    ch=CompositionHelper(Krita.instance())
+    ch = CompositionHelper(Krita.instance())
     ch.setup()
     ch.start()

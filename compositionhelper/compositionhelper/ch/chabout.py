@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Composition Helper
 # Copyright (C) 2020 - Grum999
 # -----------------------------------------------------------------------------
@@ -18,7 +18,6 @@
 # -----------------------------------------------------------------------------
 # A Krita plugin designed to add composition helper in documents
 # -----------------------------------------------------------------------------
-
 
 
 # -----------------------------------------------------------------------------
@@ -43,8 +42,8 @@ class CHAboutWindow(QDialog):
         PyQt5.uic.loadUi(uiFileName, self)
 
         self.setWindowTitle(i18n(f'{chName}::About'))
-        self.setWindowFlags(Qt.Dialog|Qt.WindowTitleHint)
-        self.setWindowFlags(self.windowFlags()&~Qt.WindowMinMaxButtonsHint)
+        self.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint)
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowMinMaxButtonsHint)
         self.lblKcName.setText(chName)
         self.lblKcVersion.setText(f'v{chVersion}')
 
