@@ -466,6 +466,67 @@ class CHMainWindow(QDialog):
         elif helper == CHHelpers.BASIC_DIAGONALS:
             lines.append(QLineF(0, 0, nW, nH))
             lines.append(QLineF(0, nH, nW, 0))
+        elif helper == CHHelpers.BASIC_DIAMOND:
+            pX = nW/2
+            pY = nH/2
+
+            lines.append(QLineF(0, pY, pX, 0))
+            lines.append(QLineF(pX, 0, nW, pY))
+            lines.append(QLineF(nW, pY, pX, nH))
+            lines.append(QLineF(pX, nH, 0, pY))
+        elif helper == CHHelpers.BASIC_QUARTERS:
+            pX = nW/4
+            pY = nH/4
+
+            lines.append(QLineF(pX, 0, pX, nH))
+            lines.append(QLineF(nW - pX, 0, nW - pX, nH))
+
+            lines.append(QLineF(0, pY, nW, pY))
+            lines.append(QLineF(0, nH - pY, nW, nH - pY))
+        elif helper == CHHelpers.DYNAMIC_SYMMETRY:
+            # rule of third
+            tmpX = nW/3
+            pY = 2*nH/3
+            coeff = pY/tmpX
+            pX = nH/coeff
+
+            lines.append(QLineF(0, 0, pX, nH))
+            lines.append(QLineF(0, nH, pX, 0))
+
+            lines.append(QLineF(nW, 0, nW - pX, nH))
+            lines.append(QLineF(nW, nH, nW - pX, 0))
+        elif helper == CHHelpers.DYNAMIC_SYMMETRY_GS:
+            # golden section
+            tmpX = nW/(1+PHI)
+            pY = nH - nH/(1+PHI)
+            coeff = pY/tmpX
+            pX = nH/coeff
+
+            lines.append(QLineF(0, 0, pX, nH))
+            lines.append(QLineF(0, nH, pX, 0))
+
+            lines.append(QLineF(nW, 0, nW - pX, nH))
+            lines.append(QLineF(nW, nH, nW - pX, 0))
+        elif helper == CHHelpers.RECIPROCAL_LINES:
+            # rule of third
+            pX = nW/3
+            pY = nH/3
+
+            lines.append(QLineF(0, 0, pX, nH))
+            lines.append(QLineF(0, nH, pX, 0))
+
+            lines.append(QLineF(nW, 0, nW - pX, nH))
+            lines.append(QLineF(nW, nH, nW - pX, 0))
+        elif helper == CHHelpers.RECIPROCAL_LINES_GS:
+            # golden section
+            pX = nW/(1+PHI)
+            pY = nH/(1+PHI)
+
+            lines.append(QLineF(0, 0, pX, nH))
+            lines.append(QLineF(0, nH, pX, 0))
+
+            lines.append(QLineF(nW, 0, nW - pX, nH))
+            lines.append(QLineF(nW, nH, nW - pX, 0))
 
         painter.drawLines(lines)
 

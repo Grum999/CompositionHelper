@@ -29,6 +29,12 @@ class CHHelpers:
     RULE_OF_THIRD = 'ro3'
     BASIC_CROSS = 'bascross'
     BASIC_DIAGONALS = 'basdiag'
+    DYNAMIC_SYMMETRY = 'dynsym'
+    DYNAMIC_SYMMETRY_GS = 'dynsymgs'
+    RECIPROCAL_LINES = 'reciproclines'
+    RECIPROCAL_LINES_GS = 'reciproclinesgs'
+    BASIC_DIAMOND = 'basdiamond'
+    BASIC_QUARTERS = 'basquarters'
 
     OPTION_FLIPV = 'flipV'
     OPTION_FLIPH = 'flipH'
@@ -105,6 +111,54 @@ class CHHelpersDef:
                                     },
             CHHelpers.BASIC_DIAGONALS: {
                                         'label': i18n('Basic diagonals'),
+                                        'options': {
+                                                'available': [CHHelpers.OPTION_FORCE_GR, CHHelpers.OPTION_USE_SELECTION],
+                                                'default':   [],
+                                                'forced':    []
+                                            }
+                                    },
+            CHHelpers.BASIC_DIAMOND: {
+                                        'label': i18n('Basic diamond'),
+                                        'options': {
+                                                'available': [CHHelpers.OPTION_FORCE_GR, CHHelpers.OPTION_USE_SELECTION],
+                                                'default':   [],
+                                                'forced':    []
+                                            }
+                                    },
+            CHHelpers.BASIC_QUARTERS: {
+                                        'label': i18n('Basic quarters'),
+                                        'options': {
+                                                'available': [CHHelpers.OPTION_FORCE_GR, CHHelpers.OPTION_USE_SELECTION],
+                                                'default':   [],
+                                                'forced':    []
+                                            }
+                                    },
+            CHHelpers.DYNAMIC_SYMMETRY_GS: {
+                                        'label': i18n('Dynamic Symmetry\n(Golden section)'),
+                                        'options': {
+                                                'available': [CHHelpers.OPTION_FORCE_GR, CHHelpers.OPTION_USE_SELECTION],
+                                                'default':   [],
+                                                'forced':    []
+                                            }
+                                    },
+            CHHelpers.DYNAMIC_SYMMETRY: {
+                                        'label': i18n('Dynamic Symmetry\n(Rule of third)'),
+                                        'options': {
+                                                'available': [CHHelpers.OPTION_FORCE_GR, CHHelpers.OPTION_USE_SELECTION],
+                                                'default':   [],
+                                                'forced':    []
+                                            }
+                                    },
+            CHHelpers.RECIPROCAL_LINES_GS: {
+                                        'label': i18n('Reciprocal lines\n(Golden section)'),
+                                        'options': {
+                                                'available': [CHHelpers.OPTION_FORCE_GR, CHHelpers.OPTION_USE_SELECTION],
+                                                'default':   [],
+                                                'forced':    []
+                                            }
+                                    },
+            CHHelpers.RECIPROCAL_LINES: {
+                                        'label': i18n('Reciprocal lines\n(Rule of third)'),
                                         'options': {
                                                 'available': [CHHelpers.OPTION_FORCE_GR, CHHelpers.OPTION_USE_SELECTION],
                                                 'default':   [],
