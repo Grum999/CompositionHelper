@@ -1,9 +1,8 @@
-# Composition Helper :: Release 1.2.0 [2023-06-09]
-
+# Composition Helper :: Release 1.2.0 [2023-06-10]
 
 ## Improvements
 
-# Implement new helpers
+### New helpers
 [Feature request #4](https://github.com/Grum999/CompositionHelper/issues/4)
 
 Some additional helpers added to current list:
@@ -18,7 +17,20 @@ _Basic diamond & Basic quarters_
 _Dynamic Symmetry based from **Rules of thirds** & **Golden sections**_
 ![Basic diamond & Basic quarters helpers](./../screenshots/r1-2-0_helpers2.png)
 
-_reciprocal lines based from **Rules of thirds** & **Golden sections**_
+_Reciprocal lines based from **Rules of thirds** & **Golden sections**_
 ![Basic diamond & Basic quarters helpers](./../screenshots/r1-2-0_helpers3.png)
+
+
+### Menu access
+[Feature request #5](https://github.com/Grum999/CompositionHelper/issues/5)
+
+Menu to open *Composition Helper* plugin has been moved into *Tools* menu, and:
+- An icon has been added (note: on Windows all icons menu are hidden by a hardcoded Krita's rule)
+- Menu is enabled/disabled according to active document availability
+- In Krita's shortcuts settings, it's now possible to define a shortcut for menu
+
+_Menu with icon_
+![Menu with icon](./../screenshots/r1-2-0_menu.png)
+
 
 

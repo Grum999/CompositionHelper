@@ -95,16 +95,37 @@ class CompositionHelper(Extension):
         # This is necessary to create the underlying C++ object
         super().__init__(parent)
         self.parent = parent
-        self.__uiController = None
         self.__isKritaVersionOk = checkKritaVersion(*REQUIRED_KRITA_VERSION)
+        self.__action = None
+        self.__notifier = Krita.instance().notifier()
+
+    def __windowCreated(self):
+        """Main window has been created"""
+        def aboutToShowToolsMenu():
+            self.__action.setEnabled(len(Krita.instance().activeWindow().views()) > 0)
+
+        self.__action.setIcon(buildIcon([(':/ch/images/normal/compositionhelper', QIcon.Normal),
+                                         (':/ch/images/disabled/compositionhelper', QIcon.Disabled)]))
+        self.__action.setEnabled(False)
+
+        # search for menu 'File'
+        menuTools = Krita.instance().activeWindow().qwindow().findChild(QMenu,'tools')
+
+        if isinstance(menuTools, QMenu):
+            # by default, set menu disabled
+            menuTools.aboutToShow.connect(aboutToShowToolsMenu)
 
     def setup(self):
         """Is executed at Krita's startup"""
-        pass
+        UITheme.load()
+        UITheme.load(os.path.join(os.path.dirname(__file__), 'ch', 'resources'))
+
+        self.__notifier.setActive(True)
+        self.__notifier.windowCreated.connect(self.__windowCreated)
 
     def createActions(self, window):
-        action = window.createAction(EXTENSION_ID, PLUGIN_MENU_ENTRY, "tools/scripts")
-        action.triggered.connect(self.start)
+        self.__action = window.createAction(EXTENSION_ID, PLUGIN_MENU_ENTRY, "tools")
+        self.__action.triggered.connect(self.start)
 
     def start(self):
         """Execute Composition Helper"""

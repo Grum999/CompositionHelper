@@ -1,0 +1,8 @@
+<!DOCTYPE RCC><RCC version="1.0">
+  <qresource prefix="ch/images/normal">
+    <file alias="compositionhelper">svg/dark/32dp/compositionhelper.svg</file>
+  </qresource>
+  <qresource prefix="ch/images/disabled">
+    <file alias="compositionhelper">svg/dark/32dp-disabled/compositionhelper.svg</file>
+  </qresource>
+</RCC>

@@ -1,6 +1,6 @@
 # Composition Helper
 
-An plugin for [Krita](https://krita.org).
+A plugin for [Krita](https://krita.org).
 
 
 ## What is Composition Helper?
@@ -38,7 +38,7 @@ As *Composition Helper* plugin use native [Krita](https://krita.org) layers, man
 ## Download, Install & Execute
 
 ### Download
-+ **[ZIP ARCHIVE - v1.1.3](https://github.com/Grum999/CompositionHelper/releases/download/1.1.3/compositionhelper.zip)**
++ **[ZIP ARCHIVE - v1.2.0](https://github.com/Grum999/CompositionHelper/releases/download/1.2.0/compositionhelper.zip)**
 + **[SOURCE](https://github.com/Grum999/CompositionHelper)**
 
 
@@ -58,15 +58,16 @@ When you want to execute *Composition Helper*, simply go to **Tools** -> **Scrip
 
 
 ### Tested platforms
-Plugin has been tested with Krita 4.4.1 (appimage) on Linux Debian 10
-
-Currently don't kwow if plugin works on Windows and MacOs, but as plugin don't use specific OS functionalities and/resources, it should be ok.
-
+Plugin has been tested with Krita 5.2.0 (appimage)
 
 
 ## Plugin's life
 
 ### What's new?
+_[2023-06-09] Version 1.2.0_
+- Implement - *New helpers*
+- Implement - *Menu access*
+
 _[2023-05-09] Version 1.1.3_
 - Fix bug *Krita 5.2.0 Compatibility*
 - Fix bug *First Vector layer not added in composition helper group*
@@ -122,7 +123,7 @@ Any idea are welcome.
 
 *Composition Helper* is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
-You should receive a copy of the GNU General Public License along with *Buli Commander*. If not, see <https://www.gnu.org/licenses/>.
+You should receive a copy of the GNU General Public License along with *Composition Helper*. If not, see <https://www.gnu.org/licenses/>.
 
 
 Long story short: you're free to download, modify as well as redistribute *Composition Helper* as long as this ability is preserved and you give contributors proper credit. This is the same license under which Krita is released, ensuring compatibility between the two.
