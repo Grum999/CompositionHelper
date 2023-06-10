@@ -54,7 +54,7 @@ Plugin installation in [Krita](https://krita.org) is not intuitive and needs som
 
 ### Execute
 
-When you want to execute *Composition Helper*, simply go to **Tools** -> **Scripts** and select **Composition Helper**.
+When you want to execute *Composition Helper*, simply go to **Tools** and select **Composition Helper**.
 
 
 ### Tested platforms
