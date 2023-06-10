@@ -42,12 +42,7 @@ from .chhelpers import (
         CHHelpers,
         CHHelpersDef
     )
-from .chutils import (
-        checkerBoardBrush
-    )
-from .chabout import (
-        CHAboutWindow
-    )
+
 from .chsettings import (
         CHSettings,
         CHSettingsKey
@@ -55,7 +50,10 @@ from .chsettings import (
 from .chwcolorbutton import (
         CHWColorButton
     )
-from ..pktk.ekrita import (
+
+from compositionhelper.pktk.modules.imgutils import checkerBoardBrush
+from compositionhelper.pktk.modules.about import AboutWindow
+from compositionhelper.pktk.modules.ekrita import (
         EKritaDocument,
         EKritaNode
     )
@@ -196,7 +194,7 @@ class CHMainWindow(QDialog):
 
         def displayAbout(dummy=None):
             # display about window
-            CHAboutWindow(self.__chName, self.__chVersion)
+            AboutWindow(self.__chName, self.__chVersion, os.path.join(os.path.dirname(__file__), 'resources', 'png', 'buli-powered-big.png'), None, ':CompositionHelper')
 
         # build Helper list
         self.cbxHelpers.setIconSize(self.__iconSizeHelper)

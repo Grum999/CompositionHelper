@@ -36,7 +36,7 @@ import re
 import sys
 import shutil
 
-from .chutils import (
+from compositionhelper.pktk.modules.utils import (
         checkKritaVersion,
         Debug
     )

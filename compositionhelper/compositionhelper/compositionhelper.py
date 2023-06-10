@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Composition Helper
 # Copyright (C) 2020 - Grum999
 # -----------------------------------------------------------------------------
@@ -47,7 +47,9 @@ if __name__ != '__main__':
             EInvalidValue,
             PkTk
         )
-    from .ch.chutils import checkKritaVersion
+    from compositionhelper.pktk.modules.imgutils import buildIcon
+    from compositionhelper.pktk.modules.utils import checkKritaVersion
+    from compositionhelper.pktk.modules.uitheme import UITheme
     from .ch.chmainwindow import CHMainWindow
 else:
     # Execution from 'Scripter' plugin?
@@ -69,7 +71,9 @@ else:
             EInvalidValue,
             PkTk
         )
-    from compositionhelper.ch.chutils import checkKritaVersion
+    from compositionhelper.pktk.modules.imgutils import buildIcon
+    from compositionhelper.pktk.modules.utils import checkKritaVersion
+    from compositionhelper.pktk.modules.uitheme import UITheme
     from compositionhelper.ch.chmainwindow import CHMainWindow
 
     print("======================================")
