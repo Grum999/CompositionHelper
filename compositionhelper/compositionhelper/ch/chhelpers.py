@@ -101,8 +101,16 @@ class CHHelpersDef:
                                                 'forced':    []
                                             }
                                     },
+            CHHelpers.BASIC_QUARTERS: {
+                                        'label': i18n('Quarters'),
+                                        'options': {
+                                                'available': [CHHelpers.OPTION_FORCE_GR, CHHelpers.OPTION_USE_SELECTION],
+                                                'default':   [],
+                                                'forced':    []
+                                            }
+                                    },
             CHHelpers.BASIC_CROSS: {
-                                        'label': i18n('Basic cross'),
+                                        'label': i18n('Central cross'),
                                         'options': {
                                                 'available': [CHHelpers.OPTION_USE_SELECTION],
                                                 'default':   [],
@@ -110,7 +118,7 @@ class CHHelpersDef:
                                             }
                                     },
             CHHelpers.BASIC_DIAGONALS: {
-                                        'label': i18n('Basic diagonals'),
+                                        'label': i18n('Diagonals'),
                                         'options': {
                                                 'available': [CHHelpers.OPTION_FORCE_GR, CHHelpers.OPTION_USE_SELECTION],
                                                 'default':   [],
@@ -118,15 +126,7 @@ class CHHelpersDef:
                                             }
                                     },
             CHHelpers.BASIC_DIAMOND: {
-                                        'label': i18n('Basic diamond'),
-                                        'options': {
-                                                'available': [CHHelpers.OPTION_FORCE_GR, CHHelpers.OPTION_USE_SELECTION],
-                                                'default':   [],
-                                                'forced':    []
-                                            }
-                                    },
-            CHHelpers.BASIC_QUARTERS: {
-                                        'label': i18n('Basic quarters'),
+                                        'label': i18n('Diamond'),
                                         'options': {
                                                 'available': [CHHelpers.OPTION_FORCE_GR, CHHelpers.OPTION_USE_SELECTION],
                                                 'default':   [],
