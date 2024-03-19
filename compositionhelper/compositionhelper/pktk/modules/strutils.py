@@ -19,6 +19,8 @@ import re
 
 from PyQt5.QtGui import QTextDocumentFragment
 
+from ..pktk import *
+
 # ------------------------------------------------------------------------------
 # don't really like to use global variable... create a class with static methods instead?
 __bytesSizeToStrUnit = 'autobin'
@@ -236,6 +238,11 @@ def stripHtml(value):
     return QTextDocumentFragment.fromHtml(value).toPlainText()
 
 
+def nbsp(value):
+    """replace space with html &nbsp;"""
+    return value.replace(' ', "&nbsp;").replace('-', "&#8209;")
+
+
 def indent(text, firstIndent='', nextIndent='', strip=False):
     """Indent text
 
@@ -283,6 +290,44 @@ def indent(text, firstIndent='', nextIndent='', strip=False):
     return os.linesep.join(result)
 
 
+def trimLines(text, trimCharacter=r'\s'):
+    """Trim all lines from given `text` (leading/trailing characters)
+
+    Default character is space, can be defined with `trimCharacter` (provided as regular expression)
+    """
+    if trimCharacter in (r'\s', ' '):
+        # all spaces, excluding new line
+        trimCharacter = r'[^\S\r\n]'
+    return re.sub(f"^{trimCharacter}+|{trimCharacter}+$", "", text, flags=re.I | re.M)
+
+
+def trimLinesLeft(text, trimCharacter=r'\s'):
+    """Trim all lines from given `text` (leading characters only)
+
+    Default character is space, can be defined with `trimCharacter` (provided as regular expression)
+    """
+    if trimCharacter in (r'\s', ' '):
+        # all spaces, excluding new line
+        trimCharacter = r'[^\S\r\n]'
+    return re.sub(f"^{trimCharacter}+", "", text, flags=re.I | re.M)
+
+
+def trimLinesRight(text, trimCharacter=r'\s'):
+    """Trim all lines from given `text` (trainling characters only)
+
+    Default character is space, can be defined with `trimCharacter` (provided as regular expression)
+    """
+    if trimCharacter in (r'\s', ' '):
+        # all spaces, excluding new line
+        trimCharacter = r'[^\S\r\n]'
+    return re.sub(f"{trimCharacter}+$", "", text, flags=re.I | re.M)
+
+
 def boolYesNo(value):
     """Return yes or no according to value is True or False"""
     return i18n("Yes") if value else i18n("No")
+
+
+def wildcardToRegEx(pattern):
+    """Convert a wildcard expression to regular expression"""
+    return re.escape(pattern).replace("\\*", ".*").replace("\\?", ".")

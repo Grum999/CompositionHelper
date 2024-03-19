@@ -25,17 +25,23 @@ import re
 import PyQt5.uic
 
 from PyQt5.Qt import *
+from PyQt5.QtGui import (
+        QImage,
+        QPixmap
+    )
 from PyQt5.QtWidgets import (
         QDialog
     )
 
 from ..pktk import *
-from .edialog import EDialog
+from ..widgets.wedialog import WEDialog
 
 # -----------------------------------------------------------------------------
 
+print("[DEPRECATED] about.py/AboutWindow class is DEPRECATED --> Use wabout.py/WAboutWindow instead")
 
-class AboutWindow(EDialog):
+
+class AboutWindow(WEDialog):
     """A generic 'about' window
 
     ̀ name`:        plugin name, as displayed to user
@@ -49,7 +55,7 @@ class AboutWindow(EDialog):
     """
 
     def __init__(self, name="XXXX", version="testing", image=None, license=None, sourceCode=None, madeWith=None, parent=None):
-        super(AboutWindow, self).__init__(os.path.join(os.path.dirname(__file__), '..', 'resources', 'about.ui'), parent)
+        super(AboutWindow, self).__init__(os.path.join(os.path.dirname(__file__), '..', 'resources', 'wabout.ui'), parent)
 
         self.setWindowTitle(i18n(f'{name}::About'))
         self.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint)
