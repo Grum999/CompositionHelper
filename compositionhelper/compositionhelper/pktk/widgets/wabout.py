@@ -65,7 +65,8 @@ class WAboutWindow(WEDialog):
         if isinstance(icon, QIcon):
             self.lbIcon.setPixmap(icon.pixmap(QSize(64, 64)))
         else:
-            self.lbIcon.setVisible(False)
+            #self.lbIcon.setVisible(False)
+            self.lbIcon.resize(0, 0)
 
         if image is not None:
             if isinstance(image, QImage):
