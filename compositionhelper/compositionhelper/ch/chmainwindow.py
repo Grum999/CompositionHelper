@@ -51,12 +51,15 @@ from .chwcolorbutton import (
         CHWColorButton
     )
 
-from compositionhelper.pktk.modules.imgutils import checkerBoardBrush
-from compositionhelper.pktk.modules.about import AboutWindow
+from compositionhelper.pktk.modules.imgutils import (
+        checkerBoardBrush,
+        buildIcon
+        )
 from compositionhelper.pktk.modules.ekrita import (
         EKritaDocument,
         EKritaNode
-    )
+        )
+from compositionhelper.pktk.widgets.wabout import WAboutWindow
 
 # Define Golden number value
 PHI = 1.61803398875
@@ -194,7 +197,7 @@ class CHMainWindow(QDialog):
 
         def displayAbout(dummy=None):
             # display about window
-            AboutWindow(self.__chName, self.__chVersion, os.path.join(os.path.dirname(__file__), 'resources', 'png', 'buli-powered-big.png'), None, ':CompositionHelper')
+            WAboutWindow(self.__chName, self.__chVersion, os.path.join(os.path.dirname(__file__), 'resources', 'png', 'buli-powered-big.png'), None, ':CompositionHelper', None, None)
 
         # build Helper list
         self.cbxHelpers.setIconSize(self.__iconSizeHelper)
@@ -698,7 +701,7 @@ class CHMainWindow(QDialog):
         """Trigerred when mouse enter above QDialog"""
         # not sure why focusInEvent is not working so use this one
         # maybe not the more elegant way to do it but as there's no event/signal on Document class
-        # allowoing to detect selection has been modified (or if exist, was not found :-/)
+        # allowing to detect selection has been modified (or if exist, was not found :-/)
         #
         # consider, if mouse leave and the enter on QDialog that maybe, the selection in document
         # has been modified
