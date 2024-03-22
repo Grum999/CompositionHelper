@@ -51,6 +51,7 @@ from .chwcolorbutton import (
         CHWColorButton
     )
 
+from compositionhelper.pktk.modules.timeutils import Timer
 from compositionhelper.pktk.modules.imgutils import (
         checkerBoardBrush,
         buildIcon
@@ -589,6 +590,7 @@ class CHMainWindow(QDialog):
         """Retrieve current document projection and refresh preview"""
         document = Krita.instance().activeDocument()
         if document is not None:
+            document.refreshProjection()
             self.__documentPreview = document.projection(0, 0, document.width(), document.height())
             self.__updateDocumentSelection()
             self.__updateDocumentResized()
@@ -779,7 +781,15 @@ class CHMainWindow(QDialog):
             EKritaNode.fromSVG(newLayer, svgContent, document)
             groupNode.addChildNode(newLayer, None)
 
-        document.refreshProjection()
+        # There's a lot of async stuff
+        # Adding a child in layer stack is not "taken in account" immediately
+        # and if update for preview is made to quicky, then it doesn't contain
+        # the lastest layer added
+        #
+        # The `document.waitForDone()` instruction doesn't change anything
+        # So the warrior hadk method: a sleep T_T
+        # 125ms is still too fast... use 250ms
+        Timer.sleep(250)
         self.__updateDocumentPreview()
 
         # also update settings when a layers is added (keep in memory that for current helper, the
