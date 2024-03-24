@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1024</width>
-    <height>740</height>
+    <width>1600</width>
+    <height>800</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -33,333 +33,474 @@
     <number>6</number>
    </property>
    <item>
-    <widget class="QWidget" name="widget" native="true">
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
-      <property name="leftMargin">
-       <number>0</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-      <property name="bottomMargin">
-       <number>0</number>
-      </property>
-      <item>
-       <widget class="QWidget" name="widget_3" native="true">
-        <property name="maximumSize">
-         <size>
-          <width>425</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <layout class="QGridLayout" name="gridLayout">
-         <property name="leftMargin">
-          <number>0</number>
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <property name="documentMode">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="tabHelpers">
+      <attribute name="title">
+       <string>Helper</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>4</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QWidget" name="widget_3" native="true">
+         <property name="maximumSize">
+          <size>
+           <width>425</width>
+           <height>16777215</height>
+          </size>
          </property>
-         <property name="topMargin">
-          <number>0</number>
+         <layout class="QGridLayout" name="gridLayout">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_4">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <italic>false</italic>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+            <property name="text">
+             <string>Color</string>
+            </property>
+           </widget>
+          </item>
+          <item row="14" column="0">
+           <spacer name="verticalSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="7" column="0">
+           <widget class="QLabel" name="label_6">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <italic>false</italic>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+            <property name="text">
+             <string>Width</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <italic>false</italic>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+            <property name="text">
+             <string>Style</string>
+            </property>
+           </widget>
+          </item>
+          <item row="15" column="0" colspan="3">
+           <widget class="QPushButton" name="pbAdd">
+            <property name="toolTip">
+             <string>Add current helper configuration to document</string>
+            </property>
+            <property name="text">
+             <string>Add</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="4">
+           <widget class="QDoubleSpinBox" name="dsbLineWidth">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>Line width applied to helper</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+            <property name="suffix">
+             <string>px</string>
+            </property>
+            <property name="minimum">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>25.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>2.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1" colspan="3">
+           <widget class="QSlider" name="hsLineWidth">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string>Line width applied to helper</string>
+            </property>
+            <property name="minimum">
+             <number>100</number>
+            </property>
+            <property name="maximum">
+             <number>2500</number>
+            </property>
+            <property name="singleStep">
+             <number>100</number>
+            </property>
+            <property name="pageStep">
+             <number>500</number>
+            </property>
+            <property name="value">
+             <number>200</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="5">
+           <widget class="QLabel" name="label_2">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: palette(light);padding: 6;</string>
+            </property>
+            <property name="text">
+             <string>Model</string>
+            </property>
+            <property name="margin">
+             <number>4</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="5">
+           <widget class="QComboBox" name="cbxHelpers">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>104</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Model of helper to use&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0" colspan="5">
+           <widget class="QLabel" name="label_3">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: palette(light);padding: 6;</string>
+            </property>
+            <property name="text">
+             <string>Line properties</string>
+            </property>
+            <property name="margin">
+             <number>4</number>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1" colspan="4">
+           <widget class="WColorButton" name="pbLineColor">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string>Color applied to helper</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1" colspan="4">
+           <widget class="QComboBox" name="cbxLineStyle">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string>Line style applied to helper</string>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="0" colspan="5">
+           <widget class="QLabel" name="lblOptions">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: palette(light);padding: 6;</string>
+            </property>
+            <property name="text">
+             <string>Options</string>
+            </property>
+            <property name="margin">
+             <number>4</number>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="0" colspan="5">
+           <widget class="QCheckBox" name="cbForceGR">
+            <property name="toolTip">
+             <string>When checked, constrain helper to respect Golden number ratio</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+            <property name="text">
+             <string>Force golden ratio</string>
+            </property>
+           </widget>
+          </item>
+          <item row="10" column="0" colspan="5">
+           <widget class="QCheckBox" name="cbFlipH">
+            <property name="toolTip">
+             <string>Flip helper horizontally (vertical axis)</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+            <property name="text">
+             <string>Flip horizontally</string>
+            </property>
+           </widget>
+          </item>
+          <item row="11" column="0" colspan="5">
+           <widget class="QCheckBox" name="cbFlipV">
+            <property name="toolTip">
+             <string>Flip helper vertically (horizontal axis)</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+            <property name="text">
+             <string>Flip vertically</string>
+            </property>
+           </widget>
+          </item>
+          <item row="12" column="0" colspan="5">
+           <widget class="QCheckBox" name="cbUseSelection">
+            <property name="toolTip">
+             <string>When checked, if a selection exist, use selection bounds to render helper</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+            <property name="text">
+             <string>Use current selection</string>
+            </property>
+           </widget>
+          </item>
+          <item row="15" column="3" colspan="2">
+           <widget class="QCheckBox" name="cbAddAsVectorLayer">
+            <property name="toolTip">
+             <string>When checked, helper is added as a vector layer instead of a paint layer</string>
+            </property>
+            <property name="statusTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>As a vector layer</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="widget_4" native="true">
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="label_7">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: palette(light);padding: 6;</string>
+            </property>
+            <property name="text">
+             <string>Preview</string>
+            </property>
+            <property name="margin">
+             <number>4</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QFrame" name="frame">
+            <property name="frameShape">
+             <enum>QFrame::Box</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Sunken</enum>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+             <item>
+              <widget class="QLabel" name="lblPreview">
+               <property name="font">
+                <font>
+                 <italic>true</italic>
+                </font>
+               </property>
+               <property name="text">
+                <string>(preview)</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabSettingsManager">
+      <attribute name="title">
+       <string>Settings manager</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>4</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="WSetupManager" name="wsmSetups" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>0</number>
-         </property>
-         <item row="3" column="0" colspan="4">
-          <widget class="QLabel" name="label_3">
-           <property name="font">
-            <font>
-             <pointsize>12</pointsize>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color: palette(light);padding: 6;</string>
-           </property>
-           <property name="text">
-            <string>Line properties</string>
-           </property>
-           <property name="margin">
-            <number>4</number>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1" colspan="3">
-          <widget class="CHWColorButton" name="pbLineColor">
-           <property name="toolTip">
-            <string>Color applied to helper</string>
-           </property>
-          </widget>
-         </item>
-         <item row="11" column="0" colspan="4">
-          <widget class="QCheckBox" name="cbUseSelection">
-           <property name="toolTip">
-            <string>When checked, if a selection exist, use selection bounds to render helper</string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
-           <property name="text">
-            <string>Use current selection</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0" colspan="4">
-          <widget class="QLabel" name="label_2">
-           <property name="font">
-            <font>
-             <pointsize>12</pointsize>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color: palette(light);padding: 6;</string>
-           </property>
-           <property name="text">
-            <string>Helper model</string>
-           </property>
-           <property name="margin">
-            <number>4</number>
-           </property>
-          </widget>
-         </item>
-         <item row="10" column="0" colspan="4">
-          <widget class="QCheckBox" name="cbFlipV">
-           <property name="toolTip">
-            <string>Flip helper vertically (horizontal axis)</string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
-           <property name="text">
-            <string>Flip vertically</string>
-           </property>
-          </widget>
-         </item>
-         <item row="14" column="0" colspan="4">
-          <widget class="QPushButton" name="pbAdd">
-           <property name="toolTip">
-            <string>Add current helper configuration to document</string>
-           </property>
-           <property name="text">
-            <string>Add</string>
-           </property>
-          </widget>
-         </item>
-         <item row="8" column="0" colspan="4">
-          <widget class="QCheckBox" name="cbForceGR">
-           <property name="toolTip">
-            <string>When checked, constrain helper to respect Golden number ratio</string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
-           <property name="text">
-            <string>Force golden ratio</string>
-           </property>
-          </widget>
-         </item>
-         <item row="7" column="0" colspan="4">
-          <widget class="QLabel" name="lblOptions">
-           <property name="font">
-            <font>
-             <pointsize>12</pointsize>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color: palette(light);padding: 6;</string>
-           </property>
-           <property name="text">
-            <string>Options</string>
-           </property>
-           <property name="margin">
-            <number>4</number>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="1" colspan="3">
-          <widget class="QComboBox" name="cbxLineStyle">
-           <property name="toolTip">
-            <string>Line style applied to helper</string>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="3">
-          <widget class="QDoubleSpinBox" name="dsbLineWidth">
-           <property name="toolTip">
-            <string>Line width applied to helper</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-           <property name="suffix">
-            <string>px</string>
-           </property>
-           <property name="minimum">
-            <double>1.000000000000000</double>
-           </property>
-           <property name="maximum">
-            <double>25.000000000000000</double>
-           </property>
-           <property name="value">
-            <double>2.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="0">
-          <widget class="QLabel" name="label_6">
-           <property name="font">
-            <font>
-             <italic>true</italic>
-            </font>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
-           <property name="text">
-            <string>Width</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="0">
-          <widget class="QLabel" name="label_5">
-           <property name="font">
-            <font>
-             <italic>true</italic>
-            </font>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
-           <property name="text">
-            <string>Style</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="label_4">
-           <property name="font">
-            <font>
-             <italic>true</italic>
-            </font>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
-           <property name="text">
-            <string>Color</string>
-           </property>
-          </widget>
-         </item>
-         <item row="9" column="0" colspan="4">
-          <widget class="QCheckBox" name="cbFlipH">
-           <property name="toolTip">
-            <string>Flip helper horizontally (vertical axis)</string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
-           <property name="text">
-            <string>Flip horizontally</string>
-           </property>
-          </widget>
-         </item>
-         <item row="13" column="0">
-          <spacer name="verticalSpacer">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item row="1" column="0" colspan="4">
-          <widget class="QComboBox" name="cbxHelpers">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>104</height>
-            </size>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Model of helper to use&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="1" colspan="2">
-          <widget class="QSlider" name="hsLineWidth">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="toolTip">
-            <string>Line width applied to helper</string>
-           </property>
-           <property name="minimum">
-            <number>100</number>
-           </property>
-           <property name="maximum">
-            <number>2500</number>
-           </property>
-           <property name="singleStep">
-            <number>100</number>
-           </property>
-           <property name="pageStep">
-            <number>500</number>
-           </property>
-           <property name="value">
-            <number>200</number>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="15" column="0" colspan="4">
-          <widget class="QCheckBox" name="cbAddAsVectorLayer">
-           <property name="statusTip">
-            <string>When checked, helper is added as a vector layer instead of a paint layer</string>
-           </property>
-           <property name="text">
-            <string>Add as a vector layer</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="lblPreview">
-        <property name="font">
-         <font>
-          <italic>true</italic>
-         </font>
-        </property>
-        <property name="text">
-         <string>(preview)</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-     </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
    <item>
@@ -428,9 +569,15 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CHWColorButton</class>
+   <class>WColorButton</class>
    <extends>QPushButton</extends>
-   <header>compositionhelper.ch.chwcolorbutton</header>
+   <header>compositionhelper.pktk.widgets.wcolorbutton</header>
+  </customwidget>
+  <customwidget>
+   <class>WSetupManager</class>
+   <extends>QWidget</extends>
+   <header>compositionhelper.pktk.widgets.wsetupmanager</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

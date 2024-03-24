@@ -85,6 +85,8 @@ PLUGIN_MENU_ENTRY = 'Composition Helper'
 
 REQUIRED_KRITA_VERSION = (5, 2, 0)
 
+PkTk.setPackageName('compositionhelper')
+
 
 class CompositionHelper(Extension):
 
