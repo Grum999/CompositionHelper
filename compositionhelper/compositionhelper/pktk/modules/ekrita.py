@@ -1273,7 +1273,6 @@ class EKritaNode:
         EKritaNode.fromQImage(layerNode, pixmap.toImage(), position)
 
     @staticmethod
-    @staticmethod
     def fromSVG(layerNode, svgContent, document=None):
         """Paste given `svgContent` to `position` in '`layerNode`
 
