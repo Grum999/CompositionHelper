@@ -272,7 +272,6 @@ class CHSettings(Settings):
     def getHelperColorPickerLayout():
         """Convert picker layout from settings to layout"""
         # build a dummy color picker
-        print("getHelperColorPickerLayout", CHSettings.get(CHSettingsKey.CONFIG_HELPER_COLORPICKER_CCSS_ALPHA))
         tmpColorPicker = WColorPicker()
         tmpColorPicker.setConstraintSize(True)
         tmpColorPicker.setOptionCompactUi(CHSettings.get(CHSettingsKey.CONFIG_HELPER_COLORPICKER_COMPACT))
@@ -302,9 +301,6 @@ class CHSettings(Settings):
         # build a dummy color picker
         tmpColorPicker = WColorPicker()
         tmpColorPicker.setOptionLayout(layout)
-
-        print("setHelperColorPickerLayout", tmpColorPicker.optionShowCssRgbAlphaChecked())
-
         CHSettings.set(CHSettingsKey.CONFIG_HELPER_COLORPICKER_COMPACT, tmpColorPicker.optionCompactUi())
         CHSettings.set(CHSettingsKey.CONFIG_HELPER_COLORPICKER_ORIENTATION, tmpColorPicker.optionOrientation())
         CHSettings.set(CHSettingsKey.CONFIG_HELPER_COLORPICKER_PALETTE_VISIBLE, tmpColorPicker.optionShowColorPalette())

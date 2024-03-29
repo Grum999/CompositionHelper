@@ -61,7 +61,10 @@ from compositionhelper.pktk.modules.ekrita import (
         EKritaNode
         )
 from compositionhelper.pktk.widgets.wabout import WAboutWindow
-from compositionhelper.pktk.widgets.wsetupmanager import WSetupManager
+from compositionhelper.pktk.widgets.wsetupmanager import (
+        WSetupManager,
+        SetupManagerSetup
+        )
 from compositionhelper.pktk import *
 
 # Define Golden number value
@@ -580,7 +583,7 @@ class CHMainWindow(QDialog):
         self.wsmSetups.setPropertiesEditorIconSelectorIconSizeIndex(CHSettings.get(CHSettingsKey.CONFIG_SETUPMANAGER_PROPERTIES_DLGBOX_ICON_ZOOMLEVEL))
         self.wsmSetups.setPropertiesEditorColorPickerLayout(CHSettings.getTxtColorPickerLayout())
         self.wsmSetups.setPropertiesEditorIconButton(False)
-        self.wsmSetups.setupPropertiesEditorOpen.connect(self.__initPropertyEditor)
+
         self.wsmSetups.setActionOnDblClick(WSetupManager.MODE_APPLY)
 
         lastSetupFileName = CHSettings.get(CHSettingsKey.CONFIG_SETUPMANAGER_LASTFILE)
@@ -592,41 +595,6 @@ class CHMainWindow(QDialog):
             self.wsmSetups.saveSetup(lastSetupFileName, 'Default Composition Helper Setups')
 
         self.__updateHelper()
-
-    def __initPropertyEditor(self, setup, newSetup):
-        """Setup manager is opening a properties editor for given setup"""
-        if newSetup:
-            # initialise default comment
-            data = setup.data()
-
-            # 192x192: maximum icon size allowed in setup manager
-            size = QSize(192, 192)
-            drawRect = QRect(QPoint(0, 0), size)
-
-            # initialise pen according to UI
-            pen = QPen(QColor(data[CHSettingsKey.HELPER_LINE_COLOR.id(helperId='global')]))
-            pen.setStyle(data[CHSettingsKey.HELPER_LINE_STYLE.id(helperId='global')])
-            pen.setWidthF(data[CHSettingsKey.HELPER_LINE_WIDTH.id(helperId='global')])
-
-            pixmap = QPixmap(size)
-            pixmap.fill(Qt.transparent)
-            painter = QPainter(pixmap)
-            painter.setRenderHint(QPainter.Antialiasing)
-            painter.setPen(pen)
-
-            CHMainWindow.paintHelper(data[CHSettingsKey.HELPER_LAST_USED.id()], painter, drawRect, data[CHSettingsKey.HELPER_OPTIONS.id(helperId='global')])
-            painter.end()
-
-            comment = ['<html><head/><body>',
-                       CHHelpersDef.HELPERS[data[CHSettingsKey.HELPER_LAST_USED.id()]]['label'] + '<br>',
-                       f'<span style=" color:{data[CHSettingsKey.HELPER_LINE_COLOR.id(helperId="global")]} ">&#11200;</span> '
-                       + CHMainWindow.LINE_STYLES[data[CHSettingsKey.HELPER_LINE_STYLE.id(helperId='global')]]
-                       + f', {data[CHSettingsKey.HELPER_LINE_WIDTH.id(helperId="global")]:0.2f}px'
-                       '</body></html>'
-                      ]
-
-            setup.setComments("".join(comment))
-            setup.setIcon(QIcon(pixmap))
 
     def __lblPreviewPaint(self, event):
         """Update label preview"""
@@ -719,9 +687,45 @@ class CHMainWindow(QDialog):
             return True
         return False
 
+    def __updateCurrentSetup(self):
+        """Update wsetupmanger current setup"""
+        # initialise default comment
+        data = self.__setupData()
+
+        # 192x192: maximum icon size allowed in setup manager
+        size = QSize(192, 192)
+        drawRect = QRect(QPoint(0, 0), size)
+
+        # initialise pen according to UI
+        pen = QPen(QColor(data[CHSettingsKey.HELPER_LINE_COLOR.id(helperId='global')]))
+        pen.setStyle(data[CHSettingsKey.HELPER_LINE_STYLE.id(helperId='global')])
+        pen.setWidthF(data[CHSettingsKey.HELPER_LINE_WIDTH.id(helperId='global')])
+
+        pixmap = QPixmap(size)
+        pixmap.fill(Qt.transparent)
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setPen(pen)
+
+        CHMainWindow.paintHelper(data[CHSettingsKey.HELPER_LAST_USED.id()], painter, drawRect, data[CHSettingsKey.HELPER_OPTIONS.id(helperId='global')])
+        painter.end()
+
+        comment = ['<html><head/><body>',
+                    CHHelpersDef.HELPERS[data[CHSettingsKey.HELPER_LAST_USED.id()]]['label'] + '<br>',
+                    f'<span style=" color:{data[CHSettingsKey.HELPER_LINE_COLOR.id(helperId="global")]} ">&#11200;</span> '
+                    + CHMainWindow.LINE_STYLES[data[CHSettingsKey.HELPER_LINE_STYLE.id(helperId='global')]]
+                    + f', {data[CHSettingsKey.HELPER_LINE_WIDTH.id(helperId="global")]:0.2f}px'
+                    '</body></html>'
+                    ]
+
+        currentSetup = self.wsmSetups.currentSetup()
+        currentSetup.setData(data)
+        currentSetup.setComments("".join(comment))
+        currentSetup.setIcon(QIcon(pixmap))
+
     def __updatePreview(self, dummy=None):
         """Update preview"""
-        self.wsmSetups.setCurrentSetupData(self.__setupData())
+        self.__updateCurrentSetup()
         self.lblPreview.update()
 
     def __getPen(self, penWidthRatio=1):
@@ -763,11 +767,12 @@ class CHMainWindow(QDialog):
 
     def __applySetupFromManager(self, setupManagerSetup, fromColumnIndex):
         """A setup from setup manager have to be applied"""
-        self.__updateUIValues(setupManagerSetup.data())
-        if fromColumnIndex <= 0:
-            self.tabWidget.setCurrentIndex(0)
-        else:
-            self.__addHelperLayer()
+        if isinstance(setupManagerSetup, SetupManagerSetup):
+            self.__updateUIValues(setupManagerSetup.data())
+            if fromColumnIndex <= 0:
+                self.tabWidget.setCurrentIndex(0)
+            else:
+                self.__addHelperLayer()
 
     def __setupData(self):
         """Return a dict with current setup data"""
