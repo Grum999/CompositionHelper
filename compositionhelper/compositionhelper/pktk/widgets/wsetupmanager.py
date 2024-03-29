@@ -62,7 +62,7 @@ class SetupManagerBase(QObject):
     KEY_DATE_CREATED = 'dateCreated'
     KEY_DATE_MODIFIED = 'dateModified'
 
-    def __init__(self, parent=None):
+    def __init__(self, initFrom=None, parent=None):
         super(SetupManagerBase, self).__init__(None)
         self.__uuid = QUuid.createUuid().toString().strip("{}")
         self.__emitUpdated = 0
@@ -74,6 +74,19 @@ class SetupManagerBase(QObject):
         self.__comments = ''
         self.__dateCreated = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         self.__dateModified = self.__dateCreated
+
+        if isinstance(initFrom, SetupManagerBase):
+            # clone setup definition
+            self.beginUpdateCreated()
+            self.setName(initFrom.name())
+            self.setComments(initFrom.comments())
+            self.setIconUri(initFrom.iconUri())
+            self.setDateCreated(initFrom.dateCreated())
+            self.setDateModified(initFrom.dateModified())
+            self.importData(initFrom.exportData())
+            self.endUpdateCreated(False)
+        elif isinstance(initFrom, dict):
+            self.importData(initFrom)
 
     def _setId(self, id):
         """Set unique id """
@@ -196,7 +209,7 @@ class SetupManagerBase(QObject):
         """Start updating massively and then do not emit update"""
         self.__emitUpdated += 1
 
-    def endUpdateCreated(self):
+    def endUpdateCreated(self, emitUpdate=True):
         """Stop updating massively and then emit update"""
         self.__emitUpdated -= 1
         if self.__emitUpdated < 0:
@@ -216,22 +229,23 @@ class SetupManagerBase(QObject):
         """set node owner"""
         self.__node = node
 
+    def exportData(self):
+        """Export data definition as dictionary"""
+        raise EInvalidStatus("method exportData() must be overrided")
+
+    def importData(self, value):
+        """Import definition from dictionary"""
+        raise EInvalidStatus("method importData() must be overrided")
+
 
 class SetupManagerSetup(SetupManagerBase):
     """Class to manage setup definition"""
 
     KEY_DATA = 'data'
 
-    def __init__(self, initFrom=None):
-        super(SetupManagerSetup, self).__init__(None)
-
+    def __init__(self, initFrom=None, parent=None):
         self.__data = None
-
-        if isinstance(initFrom, SetupManagerSetup):
-            # clone setup definition
-            self.importData(initFrom.exportData())
-        elif isinstance(initFrom, dict):
-            self.importData(initFrom)
+        super(SetupManagerSetup, self).__init__(initFrom, parent)
 
     def __repr__(self):
         return f"<SetupManagerSetup({self.id()}, {self.name()})>"
@@ -324,9 +338,7 @@ class SetupManagerGroup(SetupManagerBase):
 
     KEY_EXPANDED = 'expanded'
 
-    def __init__(self, initFrom=None):
-        super(SetupManagerGroup, self).__init__(None)
-
+    def __init__(self, initFrom=None, parent=None):
         self.__expanded = True
 
         self.__iconUriOpen = 'pktk:folder_open'
@@ -335,11 +347,7 @@ class SetupManagerGroup(SetupManagerBase):
         self.__iconOpen = buildIcon(self.__iconUriOpen)
         self.__iconClose = buildIcon(self.__iconUriClose)
 
-        if isinstance(initFrom, SetupManagerGroup):
-            # clone group
-            self.importData(initFrom.exportData())
-        elif isinstance(initFrom, dict):
-            self.importData(initFrom)
+        super(SetupManagerGroup, self).__init__(initFrom, parent)
 
     def __repr__(self):
         return f"<SetupManagerGroup({self.id()}, {self.name()})>"
@@ -2043,9 +2051,6 @@ class WSetupManager(QWidget):
         # setup extension filter
         self.__extensionFilter = f"{i18n('Generic PkTk Setup Manager')} (*.pktksm)"
 
-        # current setup data that will be applied to create a new setup
-        self.__currentSetupData = None
-
         # Current widget class used to preview setup
         self.__widgetSetupClass = None
 
@@ -2071,6 +2076,10 @@ class WSetupManager(QWidget):
         self.__lastFileName = ''
         # last opened/saved setup file description
         self.__lastFileDescription = ''
+
+        # current setup data that will be applied to create a new setup
+        self.__currentSetupData = SetupManagerSetup()
+        self.__currentSetupData.setIconUri(self.__defaultIcons['icon'])
 
         self.__hasModificationToSave = False
 
@@ -2267,9 +2276,7 @@ class WSetupManager(QWidget):
         """Create a new setup"""
         self.__propertiesEditorOptions[SetupManagerPropertyEditor.OPTION_SETUP_ACTIVE_SETUP] = None
         self.__propertiesEditorOptions[SetupManagerPropertyEditor.OPTION_SETUP_PREVIEW_WIDGET] = self.__widgetSetup()
-        newSetup = SetupManagerSetup()
-        newSetup.setIconUri(self.__defaultIcons['icon'])
-        newSetup.setData(self.__currentSetupData)
+        newSetup = SetupManagerSetup(self.__currentSetupData)
 
         self.setupPropertiesEditorOpen.emit(newSetup, True)
         returned = SetupManagerPropertyEditor.edit(newSetup, self.__propertiesEditorOptions)
@@ -2498,14 +2505,18 @@ class WSetupManager(QWidget):
 
     def currentSetupData(self):
         """Return current setup data that will be applied to create a new setup"""
-        return self.__currentSetupData
+        return self.__currentSetupData.exportData()
 
     def setCurrentSetupData(self, data):
         """Set current setup data that will be applied to create a new setup
 
         Can be of any type, widget doesn't interpret data
         """
-        self.__currentSetupData = data
+        self.__currentSetupData.importData(data)
+
+    def currentSetup(self):
+        """Return current setup item (SetupManagerSetup)"""
+        return self.__currentSetupData
 
     def extensionFilter(self):
         """Return current extension filter"""
@@ -2889,8 +2900,10 @@ class SetupManagerPropertyEditor(WEDialog):
         self.lblRefreshSetup2.hide()
         self.tbRefreshSetup.hide()
         self.setUpdatesEnabled(True)
-        self.__options[SetupManagerPropertyEditor.OPTION_SETUP_PREVIEW_WIDGET].setData(self.__options[SetupManagerPropertyEditor.OPTION_SETUP_ACTIVE_SETUP])
-        self.__item.setData(self.__options[SetupManagerPropertyEditor.OPTION_SETUP_ACTIVE_SETUP])
+        self.__options[SetupManagerPropertyEditor.OPTION_SETUP_PREVIEW_WIDGET].setData(self.__options[SetupManagerPropertyEditor.OPTION_SETUP_ACTIVE_SETUP].data())
+        self.__item.setData(self.__options[SetupManagerPropertyEditor.OPTION_SETUP_ACTIVE_SETUP].data())
+        if re.match("qicon:b64=", self.__options[SetupManagerPropertyEditor.OPTION_SETUP_ACTIVE_SETUP].iconUri()):
+            self.__item.setIconUri(self.__options[SetupManagerPropertyEditor.OPTION_SETUP_ACTIVE_SETUP].iconUri())
 
     def properties(self):
         """Return options from setup editor"""
