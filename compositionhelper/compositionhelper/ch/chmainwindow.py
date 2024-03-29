@@ -391,10 +391,14 @@ class CHMainWindow(QDialog):
             pX = nW/2
             pY = nH/2
 
-            lines.append(QLineF(0, pY, pX, 0))
-            lines.append(QLineF(pX, 0, nW, pY))
-            lines.append(QLineF(nW, pY, pX, nH))
-            lines.append(QLineF(pX, nH, 0, pY))
+            diamondPath = QPainterPath()
+            diamondPath.moveTo(0, pY)
+            diamondPath.lineTo(pX, 0)
+            diamondPath.lineTo(nW, pY)
+            diamondPath.lineTo(pX, nH)
+            diamondPath.closeSubpath()
+            # draw diamond
+            painter.drawPath(diamondPath)
         elif helper == CHHelpers.BASIC_QUARTERS:
             pX = nW/4
             pY = nH/4
@@ -449,7 +453,8 @@ class CHMainWindow(QDialog):
             lines.append(QLineF(nW, 0, nW - pX, nH))
             lines.append(QLineF(nW, nH, nW - pX, 0))
 
-        painter.drawLines(lines)
+        if len(lines):
+            painter.drawLines(lines)
 
         # restore current painter transformations state
         painter.restore()
