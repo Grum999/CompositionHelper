@@ -2472,12 +2472,14 @@ class WSetupManager(QWidget):
 
     def __widgetSetup(self):
         """Return an instancied widget setup class"""
-        widget = self.__widgetSetupClass()
-        layout = widget.layout()
-        if layout:
-            layout.setContentsMargins(0, 4, 0, 0)
+        if self.__widgetSetupClass is not None:
+            widget = self.__widgetSetupClass()
+            layout = widget.layout()
+            if layout:
+                layout.setContentsMargins(0, 4, 0, 0)
 
-        return widget
+            return widget
+        return None
 
     def selectionMode(self):
         """Return current selection mode"""
