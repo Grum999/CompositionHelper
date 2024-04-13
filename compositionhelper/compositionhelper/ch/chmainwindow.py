@@ -486,7 +486,7 @@ class CHMainWindow(QDialog):
 
         self.setModal(False)
         self.setWindowTitle(i18n(f'{chName} v{chVersion}'))
-        self.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint)
+        self.setWindowFlags(Qt.Window | Qt.WindowTitleHint | Qt.WindowMaximizeButtonHint | Qt.WindowCloseButtonHint)
 
         # timer is used to update preview content when dialog window is resized
         self.__timerResizeId = 0
