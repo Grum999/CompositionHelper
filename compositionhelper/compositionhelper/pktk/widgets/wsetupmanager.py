@@ -166,9 +166,8 @@ class SetupManagerBase(QObject):
 
     def setIcon(self, icon):
         if isinstance(icon, (QIcon, QIconPickable)):
-            pickable = QIconPickable(icon)
-            self.__iconUri = pickable.toB64()
-            self.__icon = icon
+            self.__iconUri = QIconPickable(icon).toB64()
+            self.__icon = QIcon(icon)
             self.applyUpdate('iconUri')
 
     def dateCreated(self):
@@ -197,13 +196,13 @@ class SetupManagerBase(QObject):
     def acceptedChild(self):
         """Return a list of allowed children types
 
-        Return empty list if node don't accept childs
+        Return empty list if node don't accept child
         """
         return tuple()
 
-    def applyUpdate(self, property):
+    def applyUpdate(self, updatedProperty):
         if self.__emitUpdated == 0:
-            self.updated.emit(self, property)
+            self.updated.emit(self, updatedProperty)
 
     def beginUpdateCreated(self):
         """Start updating massively and then do not emit update"""
@@ -219,7 +218,7 @@ class SetupManagerBase(QObject):
 
     def inUpdateCreated(self):
         """Return if currently in a massive update"""
-        return (self.__emitUpdated != 0)
+        return self.__emitUpdated != 0
 
     def node(self):
         """return node owner"""
@@ -231,11 +230,11 @@ class SetupManagerBase(QObject):
 
     def exportData(self):
         """Export data definition as dictionary"""
-        raise EInvalidStatus("method exportData() must be overrided")
+        raise EInvalidStatus("method exportData() must be override")
 
     def importData(self, value):
         """Import definition from dictionary"""
-        raise EInvalidStatus("method importData() must be overrided")
+        raise EInvalidStatus("method importData() must be override")
 
 
 class SetupManagerSetup(SetupManagerBase):
@@ -365,7 +364,7 @@ class SetupManagerGroup(SetupManagerBase):
     def acceptedChild(self):
         """Return a list of allowed children types
 
-        Return empty list if node don't accept childs
+        Return empty list if node don't accept child
         """
         return (SetupManagerSetup, SetupManagerGroup)
 
@@ -420,7 +419,7 @@ class SetupManagerGroup(SetupManagerBase):
         """Return icon for group
 
         if expandedStatus is none, return image according to expanded/collapsed status
-        if expandedStatus is True, return image for exapanded status, otherwise return image for collapsed status
+        if expandedStatus is True, return image for expanded status, otherwise return image for collapsed status
         """
         if expandedStatus is None:
             expandedStatus = self.expanded()
@@ -471,7 +470,7 @@ class SetupManagerNode(QStandardItem):
         self.__inUpdate = 0
         self.__dndOver = False
 
-        # Initialise node childs
+        # Initialise child nodes
         self.__childNodes = []
 
         self.setData(data)
@@ -488,7 +487,7 @@ class SetupManagerNode(QStandardItem):
         else:
             data = "None"
 
-        return f"<SetupManagerNode(parent:{parent}, data:{data}, childs({len(self.__childNodes)}):{self.__childNodes})>"
+        return f"<SetupManagerNode(parent:{parent}, data:{data}, child({len(self.__childNodes)}):{self.__childNodes})>"
 
     def beginUpdateCreated(self):
         self.__inUpdate += 1
@@ -497,7 +496,7 @@ class SetupManagerNode(QStandardItem):
         self.__inUpdate -= 1
         if self.__inUpdate < 0:
             self.__inUpdate = 0
-        elif self.__inUpdate == 0:
+        if self.__inUpdate == 0:
             self.__childNodes.sort(key=lambda item: item.data().position())
             # need to recalculate position properly;
             for index, child in enumerate(self.__childNodes):
@@ -559,6 +558,7 @@ class SetupManagerNode(QStandardItem):
             return returned
 
     def insertChild(self, position, childNode):
+        """Insert a `childNode` at given `position`"""
         self.beginUpdateCreated()
         row = 0
         for i, child in enumerate(self.__childNodes):
@@ -588,8 +588,11 @@ class SetupManagerNode(QStandardItem):
         return len(self.__childNodes)
 
     def row(self):
-        """Return position in parent's children list"""
-        returned = 0
+        """Return position in parent's children list
+
+        Return -1 if there's no parent
+        """
+        returned = -1
         if self.__parentNode:
             returned = self.__parentNode.childRow(self)
         return returned
@@ -677,7 +680,7 @@ class SetupManagerNode(QStandardItem):
                     returned['sub-groups'] += stats['total-groups']
                     returned['total-groups'] += stats['total-groups']
 
-            # sub don't count childs from groups
+            # sub don't count child from groups
             returned['sub-setups'] -= returned['setups']
             returned['sub-groups'] -= returned['groups']
         return returned
@@ -730,15 +733,15 @@ class SetupManagerModel(QAbstractItemModel):
                 if data.id() == id:
                     return currentIndex
 
-                returned = getIdIndexes(id, child, currentIndex)
-                if returned.isValid():
-                    return returned
+                returnedIndex = getIdIndexes(id, child, currentIndex)
+                if returnedIndex.isValid():
+                    return returnedIndex
             return QModelIndex()
         returned = getIdIndexes(id, self.__rootNode, QModelIndex())
         return returned
 
     def __updateIdIndex(self):
-        """Build internal dictionnary of all setups/groups id
+        """Build internal dictionary of all setups/groups id
 
         key = id
         value = index
@@ -770,7 +773,7 @@ class SetupManagerModel(QAbstractItemModel):
             self.updateWidth.emit()
 
     def flags(self, index):
-        """Model accept drap'n'drop"""
+        """Model accept drag'n'drop"""
         if not index.isValid():
             return Qt.NoItemFlags
         return super(SetupManagerModel, self).flags(index) | Qt.ItemIsDragEnabled | Qt.ItemIsDropEnabled
@@ -862,7 +865,7 @@ class SetupManagerModel(QAbstractItemModel):
 
     def columnCount(self, parent=QModelIndex()):
         """Return total number of column for index"""
-        return SetupManagerModel.COLNUM_LAST+1
+        return SetupManagerModel.COLNUM_LAST + 1
 
     def rowCount(self, parent=QModelIndex()):
         """Return total number of rows for index"""
@@ -1002,8 +1005,8 @@ class SetupManagerModel(QAbstractItemModel):
 
         return returned
 
-    def idIndexes(self, options={}):
-        """Return a dictionnary of all setups/groups id
+    def idIndexes(self, options=None):
+        """Return a dictionary of all setups/groups id
 
         key = id
         value = index
@@ -1012,6 +1015,9 @@ class SetupManagerModel(QAbstractItemModel):
             'setups': True         # if True (default), result contains setups Id
             'groups': True          # if True (default), result contains groups Id
         """
+        if options is None:
+            options = {}
+
         if 'setups' not in options:
             options['setups'] = True
         if 'groups' not in options:
@@ -1206,7 +1212,7 @@ class SetupManagerModel(QAbstractItemModel):
 
         if not isinstance(data, dict):
             raise EInvalidType("Given `data` must be a <dict>")
-        elif ('setups' not in data or 'groups' not in data or 'nodes' not in data):
+        elif 'setups' not in data or 'groups' not in data or 'nodes' not in data:
             raise EInvalidValue("Given `data` must contains following keys: 'setups', 'groups', 'nodes'")
 
         self.beginResetModel()
@@ -1261,7 +1267,7 @@ class SetupManagerModel(QAbstractItemModel):
         self.__endUpdate()
         self.endResetModel()
 
-    def exportData(self, itemId=[]):
+    def exportData(self, itemId=None):
         """export model as dict
             {
                 'setups': list of SetupManagerSetup
@@ -1293,6 +1299,9 @@ class SetupManagerModel(QAbstractItemModel):
                     if len(subNodes) > 0:
                         nodes += subNodes
             return nodes
+
+        if itemId is None:
+            itemId = []
 
         returned = {
                 'setups': [],
@@ -1451,7 +1460,7 @@ class WSetupManagerTv(QTreeView):
         need to determinate next drop position:
         - above item
         - below item
-        - on item (group, or rootnode)
+        - on item (group, or root node)
         """
         overIndex = self.indexAt(event.pos())
 
@@ -1502,7 +1511,7 @@ class WSetupManagerTv(QTreeView):
         self.__model = model
         super(WSetupManagerTv, self).setModel(self.__model)
 
-        # set colums size rules
+        # set columns size rules
         header = self.header()
         header.setStretchLastSection(False)
         header.setSectionResizeMode(SetupManagerModel.COLNUM_SETUP, QHeaderView.Interactive)
@@ -1521,9 +1530,10 @@ class WSetupManagerTv(QTreeView):
         """Select given item"""
         if isinstance(item, SetupManagerBase):
             itemSelection = self.__model.itemSelection(item)
-            self.selectionModel().select(itemSelection, QItemSelectionModel.ClearAndSelect)
-        else:
-            self.selectionModel().clear()
+            if len(itemSelection) > 0:
+                self.selectionModel().select(itemSelection, QItemSelectionModel.ClearAndSelect)
+                return
+        self.selectionModel().clear()
 
     def selectedItems(self):
         """Return a list of selected groups/setups items"""
@@ -1547,7 +1557,7 @@ class WSetupManagerTv(QTreeView):
         return self.__compactIconSizeIndex
 
     def setCompactIconSizeIndex(self, value):
-        """Set current defined icon index under which treeview willdisplay compact view for items"""
+        """Set current defined icon index under which treeview will display compact view for items"""
         if not isinstance(value, int):
             raise EInvalidType("Given `index` must be <int>")
 
@@ -1566,7 +1576,7 @@ class SetupManagerModelDelegateTv(QStyledItemDelegate):
     DND_PENWIDTH = [2, 6, 10, 12, 12]
 
     def __init__(self, parent=None):
-        """Constructor, nothingspecial"""
+        """Constructor, nothing special"""
         super(SetupManagerModelDelegateTv, self).__init__(parent)
         self.__csize = 0
         self.__compactSize = False
@@ -1587,7 +1597,7 @@ class SetupManagerModelDelegateTv(QStyledItemDelegate):
     def __getComments(self, item):
         """Return a text document for group/setup comments"""
         if self.__compactSize:
-            # returne elided text on one row only
+            # return elided text on one row only
             return ""
         else:
             textDocument = QTextDocument()
@@ -1599,7 +1609,7 @@ class SetupManagerModelDelegateTv(QStyledItemDelegate):
         self.__compactSize = value
 
     def setIconSize(self, value):
-        """define icone size"""
+        """define icon size"""
         if self.__iconSize != value:
             self.__iconSize = value
             self.__iconLevelOffset = self.__iconSize//3
@@ -1661,8 +1671,12 @@ class SetupManagerModelDelegateTv(QStyledItemDelegate):
             textOffset = iconOffset + self.__iconSize + SetupManagerModelDelegateTv.MARGIN_TEXT
             bgRect = QRectF(option.rect.topLeft() + QPointF(iconOffset, 0), self.__iconQSizeF).marginsRemoved(self.__iconMargins)
             bgRect.setHeight(bgRect.width())
-            bRadius = round(max(2, self.__iconSize * 0.050))
-            rectTxt = QRectF(option.rect.left() + textOffset, option.rect.top()+4, option.rect.width()-4-textOffset, option.rect.height()-1)
+            # bRadius = round(max(2, self.__iconSize * 0.050))
+            rectTxt = QRectF(option.rect.left() + textOffset,
+                             option.rect.top() + 4,
+                             option.rect.width() - 4 - textOffset,
+                             option.rect.height() - 1
+                             )
 
             # Initialise pixmap
             pixmap = data.icon().pixmap(self.__iconQSize)
@@ -2200,7 +2214,8 @@ class WSetupManager(QWidget):
         """Reinit a new setup"""
         if self.__hasModificationToSave:
             if WDialogBooleanInput.display(i18n("Create a new setup configuration"),
-                                           f'{i18n("Current setups has been modified and will be erased")}<br><b>{i18n("Do you confirm action?")}</b>',
+                                           f'{i18n("Current setups has been modified and will be erased")}<br>'
+                                           f'<b>{i18n("Do you confirm action?")}</b>',
                                            minSize=QSize(950, 400)):
                 return self.__newSetups()
             else:
@@ -2217,7 +2232,8 @@ class WSetupManager(QWidget):
                                       filter=self.__extensionFilter,
                                       options={WDialogFile.OPTION_PREVIEW_WIDTH: 800,
                                                WDialogFile.OPTION_PREVIEW_WIDGET: wPreview,
-                                               WDialogFile.OPTION_SETTINGS_WIDGET: wSettings})
+                                               WDialogFile.OPTION_SETTINGS_WIDGET: wSettings}
+                                      )
         if result:
             return self.__loadSetupsFile(result['file'], result['settingsNfo'])
         return False
@@ -2233,7 +2249,7 @@ class WSetupManager(QWidget):
                                                WDialogFile.OPTION_PREVIEW_WIDGET: wPreview,
                                                WDialogFile.OPTION_SETTINGS_WIDGET: wSettings})
         if result:
-            extensions = re.findall(r"(?:\*(\.[^\s\)]+))+", self.__extensionFilter)
+            extensions = re.findall(r"(?:\*(\.[^\s)]+))+", self.__extensionFilter)
             if Path(result['file']).suffix not in extensions:
                 # if more than one extension, consider the first one as the expected one
                 result['file'] += extensions[0]
@@ -2244,7 +2260,7 @@ class WSetupManager(QWidget):
     def __actionNewGroup(self):
         """Create a new group"""
         self.__propertiesEditorOptions[SetupManagerPropertyEditor.OPTION_SETUP_ACTIVE_SETUP] = None
-        self.__propertiesEditorOptions[SetupManagerPropertyEditor.OPTION_SETUP_PREVIEW_WIDGET] = self.__widgetSetup()
+        self.__propertiesEditorOptions[SetupManagerPropertyEditor.OPTION_SETUP_PREVIEW_WIDGET] = None
         newGroup = SetupManagerGroup()
         newGroup.setIconUri(self.__defaultIcons['folderOpen'], self.__defaultIcons['folderClose'])
 
@@ -2252,7 +2268,8 @@ class WSetupManager(QWidget):
         returned = SetupManagerPropertyEditor.edit(newGroup, self.__propertiesEditorOptions)
 
         if returned is not None:
-            self.__propertiesEditorOptions[SetupManagerPropertyEditor.OPTION_COMMENT_COLORPICKERLAYOUT] = returned[SetupManagerPropertyEditor.OPTION_COMMENT_COLORPICKERLAYOUT]
+            self.__propertiesEditorOptions[SetupManagerPropertyEditor.OPTION_COMMENT_COLORPICKERLAYOUT] = \
+                returned[SetupManagerPropertyEditor.OPTION_COMMENT_COLORPICKERLAYOUT]
             self.__propertiesEditorOptions[SetupManagerPropertyEditor.OPTION_ICON_DLGBOX_SELECTION_VIEWMODE] = \
                 returned[SetupManagerPropertyEditor.OPTION_ICON_DLGBOX_SELECTION_VIEWMODE]
             self.__propertiesEditorOptions[SetupManagerPropertyEditor.OPTION_ICON_DLGBOX_SELECTION_INDEXSIZE] = \
@@ -2282,7 +2299,8 @@ class WSetupManager(QWidget):
         returned = SetupManagerPropertyEditor.edit(newSetup, self.__propertiesEditorOptions)
 
         if returned is not None:
-            self.__propertiesEditorOptions[SetupManagerPropertyEditor.OPTION_COMMENT_COLORPICKERLAYOUT] = returned[SetupManagerPropertyEditor.OPTION_COMMENT_COLORPICKERLAYOUT]
+            self.__propertiesEditorOptions[SetupManagerPropertyEditor.OPTION_COMMENT_COLORPICKERLAYOUT] = \
+                returned[SetupManagerPropertyEditor.OPTION_COMMENT_COLORPICKERLAYOUT]
             self.__propertiesEditorOptions[SetupManagerPropertyEditor.OPTION_ICON_DLGBOX_SELECTION_VIEWMODE] = \
                 returned[SetupManagerPropertyEditor.OPTION_ICON_DLGBOX_SELECTION_VIEWMODE]
             self.__propertiesEditorOptions[SetupManagerPropertyEditor.OPTION_ICON_DLGBOX_SELECTION_INDEXSIZE] = \
@@ -2307,14 +2325,19 @@ class WSetupManager(QWidget):
 
         item = self.tvSetups.selectedItems()[0]
         if item:
-            self.__propertiesEditorOptions[SetupManagerPropertyEditor.OPTION_SETUP_ACTIVE_SETUP] = self.__currentSetupData
-            self.__propertiesEditorOptions[SetupManagerPropertyEditor.OPTION_SETUP_PREVIEW_WIDGET] = self.__widgetSetup()
+            if isinstance(item, SetupManagerSetup):
+                self.__propertiesEditorOptions[SetupManagerPropertyEditor.OPTION_SETUP_ACTIVE_SETUP] = self.__currentSetupData
+                self.__propertiesEditorOptions[SetupManagerPropertyEditor.OPTION_SETUP_PREVIEW_WIDGET] = self.__widgetSetup()
+            else:
+                self.__propertiesEditorOptions[SetupManagerPropertyEditor.OPTION_SETUP_ACTIVE_SETUP] = None
+                self.__propertiesEditorOptions[SetupManagerPropertyEditor.OPTION_SETUP_PREVIEW_WIDGET] = None
 
             self.setupPropertiesEditorOpen.emit(item, False)
             returned = SetupManagerPropertyEditor.edit(item, self.__propertiesEditorOptions)
 
             if returned is not None:
-                self.__propertiesEditorOptions[SetupManagerPropertyEditor.OPTION_COMMENT_COLORPICKERLAYOUT] = returned[SetupManagerPropertyEditor.OPTION_COMMENT_COLORPICKERLAYOUT]
+                self.__propertiesEditorOptions[SetupManagerPropertyEditor.OPTION_COMMENT_COLORPICKERLAYOUT] = \
+                    returned[SetupManagerPropertyEditor.OPTION_COMMENT_COLORPICKERLAYOUT]
                 self.__propertiesEditorOptions[SetupManagerPropertyEditor.OPTION_ICON_DLGBOX_SELECTION_VIEWMODE] = \
                     returned[SetupManagerPropertyEditor.OPTION_ICON_DLGBOX_SELECTION_VIEWMODE]
                 self.__propertiesEditorOptions[SetupManagerPropertyEditor.OPTION_ICON_DLGBOX_SELECTION_INDEXSIZE] = \
@@ -2471,7 +2494,7 @@ class WSetupManager(QWidget):
         self.selectionChanged.emit(self.tvSetups.selectedItems())
 
     def __widgetSetup(self):
-        """Return an instancied widget setup class"""
+        """Return an instanced widget setup class"""
         if self.__widgetSetupClass is not None:
             widget = self.__widgetSetupClass()
             layout = widget.layout()
@@ -2661,7 +2684,7 @@ class WSetupManager(QWidget):
         return self.__lastFileName
 
     def lastFileDescription(self):
-        """Return file deszcription of last opened/saved setup file"""
+        """Return file description of last opened/saved setup file"""
         return self.__lastFileDescription
 
     def newSetups(self, force=False):
@@ -2735,8 +2758,11 @@ class SetupManagerPropertyEditor(WEDialog):
     OPTION_SETUP_ACTIVE_SETUP = 'setupActiveSetup'
 
     @staticmethod
-    def edit(item, options={}):
-        """Open a dialog box to edit group"""
+    def edit(item, options=None):
+        """Open a dialog box to edit group/setup"""
+        if options is None:
+            options = {}
+
         widget = QWidget()
         dlgBox = SetupManagerPropertyEditor(item, options, widget)
 
@@ -2857,7 +2883,7 @@ class SetupManagerPropertyEditor(WEDialog):
     def __setIconFromInternalResource(self, icon=None):
         """Open dialog box to choose an icon from internal resources"""
         if isinstance(icon, bool):
-            # if trigerred by button signal...
+            # if triggered by button signal...
             icon = None
 
         if not isinstance(icon, QUriIcon):
