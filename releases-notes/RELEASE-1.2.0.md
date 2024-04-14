@@ -1,4 +1,4 @@
-# Composition Helper :: Release 1.2.0 [2024-04-13]
+# Composition Helper :: Release 1.2.0 [2024-04-14]
 
 # Main Interface
 

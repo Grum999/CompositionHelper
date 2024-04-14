@@ -64,7 +64,7 @@ Plugin has been tested with Krita 5.2.2 (Linux Appimage, Windows 10)
 ## Plugin's life
 
 ### What's new?
-_[2024-04-13] Version 1.2.0_
+_[2024-04-14] Version 1.2.0_ *[Show detailed release content](./releases-notes/RELEASE-1.2.0.md)*
 - Implement - *New Helpers*
 - Implement - *Menu access*
 - Implement - *Settings manager
@@ -74,7 +74,7 @@ _[2023-05-09] Version 1.1.3_
 - Fix bug *Krita 5.2.0 Compatibility*
 - Fix bug *First Vector layer not added in composition helper group*
 
-_[2022-08-19] Version 1.1.2_ *[Show detailed release content](https://github.com/Grum999/CompositionHelper/blob/main/releases-notes/RELEASE-1.1.2.md)*
+_[2022-08-19] Version 1.1.2_ *[Show detailed release content](./releases-notes/RELEASE-1.1.2.md)*
 
 - Fix bug for some Krita Linux installation (not using appimage)
 
@@ -82,7 +82,7 @@ _[2021-01-06] Version 1.1.1_
 
 - Remove forgotten print() call
 
-_[2021-01-06] Version 1.1.0_ *[Show detailed release content](https://github.com/Grum999/CompositionHelper/blob/main/releases-notes/RELEASE-1.1.0.md)*
+_[2021-01-06] Version 1.1.0_ *[Show detailed release content](./releases-notes/RELEASE-1.1.0.md)*
 
 - Add option to add helpers as Vector layers instead of Paint layers
 
@@ -98,7 +98,7 @@ _[2020-11-13] Version 1.0.1_
 
 - Fix invalid reference into Manual
 
-_[2020-11-13] Version 1.0.0_ *[Show detailed release content](https://github.com/Grum999/CompositionHelper/blob/main/releases-notes/RELEASE-1.0.0.md)*
+_[2020-11-13] Version 1.0.0_ *[Show detailed release content](./releases-notes/RELEASE-1.0.0.md)*
 
 - First implemented/released version!
 
