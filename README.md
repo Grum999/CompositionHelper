@@ -26,7 +26,7 @@ Here a list of some functionalities:
 - Choice of line style, color, width
 - Preview
 
-![Export file list](./screenshots/r1-0-0_main_example.png)
+![Export file list](./screenshots/r1-2-0_main_example.png)
 
 As *Composition Helper* plugin use native [Krita](https://krita.org) layers, many differents helpers can be added and then, easily managed (deletion, visiblity, opacity...)
 
@@ -58,15 +58,17 @@ When you want to execute *Composition Helper*, simply go to **Tools** and select
 
 
 ### Tested platforms
-Plugin has been tested with Krita 5.2.0 (appimage)
+Plugin has been tested with Krita 5.2.2 (Linux Appimage, Windows 10)
 
 
 ## Plugin's life
 
 ### What's new?
-_[2023-06-09] Version 1.2.0_
-- Implement - *New helpers*
+_[2024-04-13] Version 1.2.0_
+- Implement - *New Helpers*
 - Implement - *Menu access*
+- Implement - *Settings manager
+- Fix bug - *Update preview*
 
 _[2023-05-09] Version 1.1.3_
 - Fix bug *Krita 5.2.0 Compatibility*
