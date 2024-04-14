@@ -1,6 +1,6 @@
 # Composition Helper
 
-An plugin for [Krita](https://krita.org).
+A plugin for [Krita](https://krita.org).
 
 
 ## What is Composition Helper?
@@ -26,7 +26,7 @@ Here a list of some functionalities:
 - Choice of line style, color, width
 - Preview
 
-![Export file list](./screenshots/r1-0-0_main_example.png)
+![Export file list](./screenshots/r1-2-0_main_example.png)
 
 As *Composition Helper* plugin use native [Krita](https://krita.org) layers, many differents helpers can be added and then, easily managed (deletion, visiblity, opacity...)
 
@@ -38,7 +38,7 @@ As *Composition Helper* plugin use native [Krita](https://krita.org) layers, man
 ## Download, Install & Execute
 
 ### Download
-+ **[ZIP ARCHIVE - v1.1.3](https://github.com/Grum999/CompositionHelper/releases/download/1.1.3/compositionhelper.zip)**
++ **[ZIP ARCHIVE - v1.2.0](https://github.com/Grum999/CompositionHelper/releases/download/1.2.0/compositionhelper.zip)**
 + **[SOURCE](https://github.com/Grum999/CompositionHelper)**
 
 
@@ -54,24 +54,27 @@ Plugin installation in [Krita](https://krita.org) is not intuitive and needs som
 
 ### Execute
 
-When you want to execute *Composition Helper*, simply go to **Tools** -> **Scripts** and select **Composition Helper**.
+When you want to execute *Composition Helper*, simply go to **Tools** and select **Composition Helper**.
 
 
 ### Tested platforms
-Plugin has been tested with Krita 4.4.1 (appimage) on Linux Debian 10
-
-Currently don't kwow if plugin works on Windows and MacOs, but as plugin don't use specific OS functionalities and/resources, it should be ok.
-
+Plugin has been tested with Krita 5.2.2 (Linux Appimage, Windows 10)
 
 
 ## Plugin's life
 
 ### What's new?
+_[2024-04-14] Version 1.2.0_ *[Show detailed release content](./releases-notes/RELEASE-1.2.0.md)*
+- Implement - *New Helpers*
+- Implement - *Menu access*
+- Implement - *Settings manager
+- Fix bug - *Update preview*
+
 _[2023-05-09] Version 1.1.3_
 - Fix bug *Krita 5.2.0 Compatibility*
 - Fix bug *First Vector layer not added in composition helper group*
 
-_[2022-08-19] Version 1.1.2_ *[Show detailed release content](https://github.com/Grum999/CompositionHelper/blob/main/releases-notes/RELEASE-1.1.2.md)*
+_[2022-08-19] Version 1.1.2_ *[Show detailed release content](./releases-notes/RELEASE-1.1.2.md)*
 
 - Fix bug for some Krita Linux installation (not using appimage)
 
@@ -79,7 +82,7 @@ _[2021-01-06] Version 1.1.1_
 
 - Remove forgotten print() call
 
-_[2021-01-06] Version 1.1.0_ *[Show detailed release content](https://github.com/Grum999/CompositionHelper/blob/main/releases-notes/RELEASE-1.1.0.md)*
+_[2021-01-06] Version 1.1.0_ *[Show detailed release content](./releases-notes/RELEASE-1.1.0.md)*
 
 - Add option to add helpers as Vector layers instead of Paint layers
 
@@ -95,7 +98,7 @@ _[2020-11-13] Version 1.0.1_
 
 - Fix invalid reference into Manual
 
-_[2020-11-13] Version 1.0.0_ *[Show detailed release content](https://github.com/Grum999/CompositionHelper/blob/main/releases-notes/RELEASE-1.0.0.md)*
+_[2020-11-13] Version 1.0.0_ *[Show detailed release content](./releases-notes/RELEASE-1.0.0.md)*
 
 - First implemented/released version!
 
@@ -122,7 +125,7 @@ Any idea are welcome.
 
 *Composition Helper* is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
-You should receive a copy of the GNU General Public License along with *Buli Commander*. If not, see <https://www.gnu.org/licenses/>.
+You should receive a copy of the GNU General Public License along with *Composition Helper*. If not, see <https://www.gnu.org/licenses/>.
 
 
 Long story short: you're free to download, modify as well as redistribute *Composition Helper* as long as this ability is preserved and you give contributors proper credit. This is the same license under which Krita is released, ensuring compatibility between the two.

@@ -1,25 +1,17 @@
 # -----------------------------------------------------------------------------
 # Composition Helper
-# Copyright (C) 2020 - Grum999
+# Copyright (C) 2020-2024 - Grum999
 # -----------------------------------------------------------------------------
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.
-# If not, see https://www.gnu.org/licenses/
+# https://spdx.org/licenses/GPL-3.0-or-later.html
 # -----------------------------------------------------------------------------
 # A Krita plugin designed to add composition helper in documents
 # -----------------------------------------------------------------------------
 
+import locale
 import os
+import sys
 from krita import Krita
 
 import PyQt5.uic
@@ -42,26 +34,101 @@ from .chhelpers import (
         CHHelpers,
         CHHelpersDef
     )
-from .chutils import (
-        checkerBoardBrush
-    )
-from .chabout import (
-        CHAboutWindow
-    )
+
 from .chsettings import (
         CHSettings,
         CHSettingsKey
     )
-from .chwcolorbutton import (
-        CHWColorButton
-    )
-from ..pktk.ekrita import (
+
+from compositionhelper.pktk.modules.uitheme import UITheme
+from compositionhelper.pktk.modules.utils import loadXmlUi
+from compositionhelper.pktk.modules.timeutils import Timer
+from compositionhelper.pktk.modules.imgutils import (
+        checkerBoardBrush,
+        buildIcon
+        )
+from compositionhelper.pktk.modules.ekrita import (
         EKritaDocument,
         EKritaNode
-    )
+        )
+from compositionhelper.pktk.widgets.wabout import WAboutWindow
+from compositionhelper.pktk.widgets.wsetupmanager import (
+        WSetupManager,
+        SetupManagerSetup
+        )
+from compositionhelper.pktk import *
 
 # Define Golden number value
 PHI = 1.61803398875
+
+
+# -----------------------------------------------------------------------------
+class WCHViewer(QWidget):
+    """A basic QWidget used to display setups"""
+
+    def __init__(self, parent=None):
+        super(WCHViewer, self).__init__(parent)
+
+        self.__data = {}
+
+        uiFileName = os.path.join(os.path.dirname(__file__), 'resources', 'wchsettingsviewer.ui')
+
+        # temporary add <plugin> path to sys.path to let 'xxx.widgets.xxx' being accessible during xmlLoad()
+        # because of WColorButton path that must be absolut in UI file
+        sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+        loadXmlUi(uiFileName, self)
+
+        # remove temporary added path
+        sys.path.pop()
+
+    def showEvent(self, event):
+        """Event triggered when dialog is shown
+
+        At this time, all widgets are initialised and size/visibility is known
+        """
+        self.__renderPreview()
+
+    def setData(self, data):
+        """Data to preview"""
+        self.__data = data
+
+        helperId = data[CHSettingsKey.HELPER_LAST_USED.id()]
+
+        self.pbLineColor.setColor(data[CHSettingsKey.HELPER_LINE_COLOR.id(helperId='global')])
+        self.lblLineStyleIcon.setPixmap(CHMainWindow.buildLineIcon(data[CHSettingsKey.HELPER_LINE_STYLE.id(helperId='global')], asPixmap=True))
+        self.lblLineStyleName.setText(CHMainWindow.LINE_STYLES[data[CHSettingsKey.HELPER_LINE_STYLE.id(helperId='global')]])
+        self.lblLineWidth.setText(locale.format_string("%.2fpx", data[CHSettingsKey.HELPER_LINE_WIDTH.id(helperId='global')]))
+
+        self.cbForceGR.setChecked(CHHelpers.OPTION_FORCE_GR in data[CHSettingsKey.HELPER_OPTIONS.id(helperId='global')])
+        self.cbFlipV.setChecked(CHHelpers.OPTION_FLIPV in data[CHSettingsKey.HELPER_OPTIONS.id(helperId='global')])
+        self.cbFlipH.setChecked(CHHelpers.OPTION_FLIPH in data[CHSettingsKey.HELPER_OPTIONS.id(helperId='global')])
+        self.cbUseSelection.setChecked(CHHelpers.OPTION_USE_SELECTION in data[CHSettingsKey.HELPER_OPTIONS.id(helperId='global')])
+
+        self.cbAddAsVectorLayer.setChecked(data[CHSettingsKey.HELPER_ADD_AS_VL.id()])
+
+        self.lblHelperModelName.setText(CHHelpersDef.HELPERS[helperId]['label'])
+
+        self.__renderPreview()
+
+    def __renderPreview(self):
+        drawRect = QRect(QPoint(0, 0), self.lblPreview.size())
+
+        # initialise pen according to UI
+        pen = QPen(QColor(self.__data[CHSettingsKey.HELPER_LINE_COLOR.id(helperId='global')]))
+        pen.setStyle(self.__data[CHSettingsKey.HELPER_LINE_STYLE.id(helperId='global')])
+        pen.setWidthF(self.__data[CHSettingsKey.HELPER_LINE_WIDTH.id(helperId='global')])
+
+        pixmap = QPixmap(self.lblPreview.size())
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.fillRect(drawRect, checkerBoardBrush())
+        painter.setPen(pen)
+
+        CHMainWindow.paintHelper(self.__data[CHSettingsKey.HELPER_LAST_USED.id()], painter, drawRect, self.__data[CHSettingsKey.HELPER_OPTIONS.id(helperId='global')])
+        painter.end()
+
+        self.lblPreview.setPixmap(pixmap)
 
 
 # -----------------------------------------------------------------------------
@@ -71,7 +138,7 @@ class CHMainWindow(QDialog):
     __OPENED = False
 
     # key/names
-    __LINE_STYLES = {
+    LINE_STYLES = {
             Qt.SolidLine: i18n('Solid'),
             Qt.DashLine: i18n('Dash'),
             Qt.DotLine: i18n('Dot'),
@@ -82,209 +149,55 @@ class CHMainWindow(QDialog):
     # default group layers name
     __LAYER_GROUP = 'CH# Composition Helpers'
 
-    def __init__(self, chName="Composition Helper", chVersion="testing"):
-        super(CHMainWindow, self).__init__(Krita.instance().activeWindow().qwindow())
+    ICON_SIZE_LINESTYLE = QSize(48, 12)
+    ICON_SIZE_HELPER = QSize(128, 96)
+    ICON_SIZE_SETUPMANAGER = QSize(192, 192)
 
-        # another instance already exist, exit
-        self.__chName = chName
-        self.__chVersion = chVersion
-
-        self.__opened = False
-        if CHMainWindow.__OPENED:
-            self.close()
-            return
-
-        if Krita.instance().activeDocument() is None:
-            # no document opened: cancel plugin
-            QMessageBox.warning(
-                    QWidget(),
-                    f"{chName}",
-                    i18n("There's no active document: <i>Composition Helper</i> plugin only works with opened documents")
-                )
-            self.close()
-            return
-
-        uiFileName = os.path.join(os.path.dirname(__file__), 'resources', 'chmainwindow.ui')
-        PyQt5.uic.loadUi(uiFileName, self)
-
-        self.setModal(False)
-        self.setWindowTitle(i18n(f'{chName} v{chVersion}'))
-        self.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint)
-
-        self.__palette = QApplication.palette()
-        self.__iconSizeLineStyle = QSize(48, 12)
-        self.__iconSizeHelper = QSize(128, 96)
-
-        # timer is used to update preview content when dialog window is resized
-        self.__timerResizeId = 0
-        self.__lastResized = QSize(0, 0)
-
-        # document preview: projection from document
-        # document resized: projection resized to label dimension andd store as a cache to avoid doing resizing on each
-        #                   canvas refresh
-        self.__documentPreview = None
-        self.__documentResized = None
-        # ratio applied between original size and preview size
-        self.__documentRatio = 1
-
-        self.__documentSelection = None
-
-        self.__settings = CHSettings()
-        self.__settings.loadConfig()
-
-        # initialise window
-        self.__initialise()
-
-        self.__opened = True
-        CHMainWindow.__OPENED = True
-        self.show()
-
-    def __initialise(self):
-        """Initialise window"""
-        def closeWindow(dummy=None):
-            # close window
-            self.close()
-
-        def updateDsbLineWidth(value):
-            # Line width slider value has been modified, update spinbox
-            self.dsbLineWidth.setValue(value/100)
-            self.__updatePreview()
-
-        def updateHsLineWidth(value):
-            # Line width slider value has been modified, update spinbox
-            self.hsLineWidth.setValue(int(value*100))
-            self.__updatePreview()
-
-        def updateHelper(dummy=None):
-            # helper model has been changed, update interface
-            currentHelper = self.cbxHelpers.currentData()
-
-            # get default value from config
-            optionsSettings = self.__settings.option(CHSettingsKey.HELPER_OPTIONS.id(helperId=currentHelper))
-
-            optionsAvailable = CHHelpersDef.HELPERS[currentHelper]['options']['available']
-            optionsForced = CHHelpersDef.HELPERS[currentHelper]['options']['forced']
-
-            self.pbLineColor.setColor(self.__settings.option(CHSettingsKey.HELPER_LINE_COLOR.id(helperId=currentHelper)))
-            self.cbxLineStyle.setCurrentIndex(list(CHMainWindow.__LINE_STYLES.keys()).index(self.__settings.option(CHSettingsKey.HELPER_LINE_STYLE.id(helperId=currentHelper))))
-            self.dsbLineWidth.setValue(self.__settings.option(CHSettingsKey.HELPER_LINE_WIDTH.id(helperId=currentHelper)))
-
-            self.cbForceGR.setEnabled(CHHelpers.OPTION_FORCE_GR in optionsAvailable)
-            if self.cbForceGR.isEnabled():
-                self.cbForceGR.setChecked(CHHelpers.OPTION_FORCE_GR in optionsSettings)
-            else:
-                # forced value?
-                self.cbForceGR.setChecked(CHHelpers.OPTION_FORCE_GR in optionsForced)
-
-            self.cbFlipH.setEnabled(CHHelpers.OPTION_FLIPV in optionsAvailable)
-            if self.cbFlipH.isEnabled():
-                self.cbFlipH.setChecked(CHHelpers.OPTION_FLIPV in optionsSettings)
-            else:
-                # forced value?
-                self.cbFlipH.setChecked(CHHelpers.OPTION_FLIPV in optionsForced)
-
-            self.cbFlipV.setEnabled(CHHelpers.OPTION_FLIPH in optionsAvailable)
-            if self.cbFlipV.isEnabled():
-                self.cbFlipV.setChecked(CHHelpers.OPTION_FLIPH in optionsSettings)
-            else:
-                # forced value?
-                self.cbFlipV.setChecked(CHHelpers.OPTION_FLIPH in optionsForced)
-
-            self.cbUseSelection.setChecked(CHHelpers.OPTION_USE_SELECTION in optionsSettings)
-
-            self.__updatePreview()
-
-        def displayAbout(dummy=None):
-            # display about window
-            CHAboutWindow(self.__chName, self.__chVersion)
-
-        # build Helper list
-        self.cbxHelpers.setIconSize(self.__iconSizeHelper)
-        for helper in CHHelpersDef.HELPERS:
-            self.cbxHelpers.addItem(self.__buildHelperIcon(helper), f" {CHHelpersDef.HELPERS[helper]['label']}", helper)
-        self.cbxHelpers.setCurrentIndex(list(CHHelpersDef.HELPERS.keys()).index(self.__settings.option(CHSettingsKey.HELPER_LAST_USED.id())))
-        self.cbxHelpers.currentIndexChanged.connect(updateHelper)
-
-        # link line width slider<>spinbox
-        self.hsLineWidth.valueChanged.connect(updateDsbLineWidth)
-        self.dsbLineWidth.valueChanged.connect(updateHsLineWidth)
-
-        # build line style list
-        self.cbxLineStyle.setIconSize(self.__iconSizeLineStyle)
-        for lineStyle in CHMainWindow.__LINE_STYLES:
-            self.cbxLineStyle.addItem(self.__buildLineIcon(lineStyle), f" {CHMainWindow.__LINE_STYLES[lineStyle]}", lineStyle)
-        self.cbxLineStyle.currentIndexChanged.connect(self.__updatePreview)
-
-        # set line color button
-        self.pbLineColor.colorChanged.connect(self.__updatePreview)
-
-        # options
-        self.cbForceGR.toggled.connect(self.__updatePreview)
-        self.cbFlipH.toggled.connect(self.__updatePreview)
-        self.cbFlipV.toggled.connect(self.__updatePreview)
-
-        self.cbUseSelection.toggled.connect(self.__updatePreview)
-        self.cbUseSelection.setEnabled(False)
-
-        self.cbAddAsVectorLayer.setVisible(QTSVG_AVAILABLE)
-        self.cbAddAsVectorLayer.setChecked(QTSVG_AVAILABLE and self.__settings.option(CHSettingsKey.HELPER_ADD_AS_VL.id()))
-
-        # button 'add'
-        self.pbAdd.clicked.connect(self.addHelperLayer)
-
-        # button 'close'
-        self.pbClose.clicked.connect(closeWindow)
-
-        self.pbAbout.clicked.connect(displayAbout)
-
-        # update preview automatically
-        self.lblPreview.paintEvent = self.__lblPreviewPaint
-        self.lblPreview.resizeEvent = self.__lblPreviewResize
-
-        self.__appNotifier = Krita.instance().notifier()
-        self.__appNotifier.viewClosed.connect(self.__activeViewChanged)
-        self.__window = Krita.instance().activeWindow()
-        self.__window.activeViewChanged.connect(self.__activeViewChanged)
-
-        self.__updateDocumentPreview()
-        updateHelper()
-
-    def __buildLineIcon(self, lineStyle):
+    @staticmethod
+    def buildLineIcon(lineStyle, iconSize=QSize(), asPixmap=False):
         """Build a QIcon with lineStyle"""
-        pixmap = QPixmap(self.__iconSizeLineStyle)
+        if not iconSize.isValid():
+            iconSize = CHMainWindow.ICON_SIZE_LINESTYLE
+        pixmap = QPixmap(iconSize)
         pixmap.fill(Qt.transparent)
 
         pen = QPen(lineStyle)
         pen.setWidth(2)
-        pen.setColor(self.__palette.color(QPalette.ButtonText))
+        pen.setColor(QApplication.palette().color(QPalette.ButtonText))
 
         painter = QPainter()
         painter.begin(pixmap)
         painter.setPen(pen)
-        painter.drawLine(0, self.__iconSizeLineStyle.height()//2, self.__iconSizeLineStyle.width(), self.__iconSizeLineStyle.height()//2)
+        painter.drawLine(0, iconSize.height()//2, iconSize.width(), iconSize.height()//2)
         painter.end()
 
+        if asPixmap:
+            return pixmap
         return QIcon(pixmap)
 
-    def __buildHelperIcon(self, helper):
+    @staticmethod
+    def buildHelperIcon(helper, iconSize=QSize()):
         """Build a QIcon with lineStyle"""
-        pixmap = QPixmap(self.__iconSizeHelper)
+        if not iconSize.isValid():
+            iconSize = CHMainWindow.ICON_SIZE_HELPER
+        pixmap = QPixmap(iconSize)
         pixmap.fill(Qt.transparent)
 
         pen = QPen(Qt.SolidLine)
         pen.setWidthF(1.5)
-        pen.setColor(self.__palette.color(QPalette.ButtonText))
+        pen.setColor(QApplication.palette().color(QPalette.ButtonText))
 
         painter = QPainter()
         painter.begin(pixmap)
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setPen(pen)
-        self.__paintHelper(helper, painter, QRect(QPoint(0, 0), self.__iconSizeHelper), CHHelpersDef.HELPERS[helper]['options']['forced'])
+        CHMainWindow.paintHelper(helper, painter, QRect(QPoint(0, 0), iconSize), CHHelpersDef.HELPERS[helper]['options']['forced'])
         painter.end()
 
         return QIcon(pixmap)
 
-    def __paintHelper(self, helper, painter, rectArea, options=[]):
+    @staticmethod
+    def paintHelper(helper, painter, rectArea, options=None):
         """Paint `helper` on `painter`, using given `size`
 
         Consider that paint surface is initialised as well as the painter pen
@@ -319,6 +232,9 @@ class CHMainWindow(QDialog):
                         QPointF(rect.right(), pY),
                         QRectF(QPointF(rect.left(), rect.top()), QPointF(rect.right(), pY))
                     )
+
+        if options is None:
+            options = []
 
         # save current painter transformations state
         painter.save()
@@ -466,21 +382,228 @@ class CHMainWindow(QDialog):
         elif helper == CHHelpers.BASIC_DIAGONALS:
             lines.append(QLineF(0, 0, nW, nH))
             lines.append(QLineF(0, nH, nW, 0))
+        elif helper == CHHelpers.BASIC_DIAMOND:
+            pX = nW/2
+            pY = nH/2
 
-        painter.drawLines(lines)
+            diamondPath = QPainterPath()
+            diamondPath.moveTo(0, pY)
+            diamondPath.lineTo(pX, 0)
+            diamondPath.lineTo(nW, pY)
+            diamondPath.lineTo(pX, nH)
+            diamondPath.closeSubpath()
+            # draw diamond
+            painter.drawPath(diamondPath)
+        elif helper == CHHelpers.BASIC_QUARTERS:
+            pX = nW/4
+            pY = nH/4
+
+            lines.append(QLineF(pX, 0, pX, nH))
+            lines.append(QLineF(nW - pX, 0, nW - pX, nH))
+
+            lines.append(QLineF(0, pY, nW, pY))
+            lines.append(QLineF(0, nH - pY, nW, nH - pY))
+        elif helper == CHHelpers.DYNAMIC_SYMMETRY:
+            # rule of third
+            tmpX = nW/3
+            pY = 2*nH/3
+            coeff = pY/tmpX
+            pX = nH/coeff
+
+            lines.append(QLineF(0, 0, pX, nH))
+            lines.append(QLineF(0, nH, pX, 0))
+
+            lines.append(QLineF(nW, 0, nW - pX, nH))
+            lines.append(QLineF(nW, nH, nW - pX, 0))
+        elif helper == CHHelpers.DYNAMIC_SYMMETRY_GS:
+            # golden section
+            tmpX = nW/(1+PHI)
+            pY = nH - nH/(1+PHI)
+            coeff = pY/tmpX
+            pX = nH/coeff
+
+            lines.append(QLineF(0, 0, pX, nH))
+            lines.append(QLineF(0, nH, pX, 0))
+
+            lines.append(QLineF(nW, 0, nW - pX, nH))
+            lines.append(QLineF(nW, nH, nW - pX, 0))
+        elif helper == CHHelpers.RECIPROCAL_LINES:
+            # rule of third
+            pX = nW/3
+            pY = nH/3
+
+            lines.append(QLineF(0, 0, pX, nH))
+            lines.append(QLineF(0, nH, pX, 0))
+
+            lines.append(QLineF(nW, 0, nW - pX, nH))
+            lines.append(QLineF(nW, nH, nW - pX, 0))
+        elif helper == CHHelpers.RECIPROCAL_LINES_GS:
+            # golden section
+            pX = nW/(1+PHI)
+            pY = nH/(1+PHI)
+
+            lines.append(QLineF(0, 0, pX, nH))
+            lines.append(QLineF(0, nH, pX, 0))
+
+            lines.append(QLineF(nW, 0, nW - pX, nH))
+            lines.append(QLineF(nW, nH, nW - pX, 0))
+
+        if len(lines):
+            painter.drawLines(lines)
 
         # restore current painter transformations state
         painter.restore()
 
+    def __init__(self, chName="Composition Helper", chVersion="testing"):
+        super(CHMainWindow, self).__init__(Krita.instance().activeWindow().qwindow())
+
+        # another instance already exist, exit
+        self.__chName = chName
+        self.__chVersion = chVersion
+
+        self.__opened = False
+        if CHMainWindow.__OPENED:
+            self.close()
+            return
+
+        if Krita.instance().activeDocument() is None:
+            # no document opened: cancel plugin
+            QMessageBox.warning(
+                    QWidget(),
+                    f"{chName}",
+                    i18n("There's no active document: <i>Composition Helper</i> plugin only works with opened documents")
+                )
+            self.close()
+            return
+
+        uiFileName = os.path.join(os.path.dirname(__file__), 'resources', 'chmainwindow.ui')
+        PyQt5.uic.loadUi(uiFileName, self)
+
+        self.setModal(False)
+        self.setWindowTitle(i18n(f'{chName} v{chVersion}'))
+        self.setWindowFlags(Qt.Window | Qt.WindowTitleHint | Qt.WindowMaximizeButtonHint | Qt.WindowCloseButtonHint)
+
+        # timer is used to update preview content when dialog window is resized
+        self.__timerResizeId = 0
+        self.__lastResized = QSize(0, 0)
+
+        # document preview: projection from document
+        # document resized: projection resized to label dimension and store as a cache to avoid doing resizing on each
+        #                   canvas refresh
+        self.__documentPreview = None
+        self.__documentResized = None
+        # ratio applied between original size and preview size
+        self.__documentRatio = 1
+
+        # Selection from document
+        self.__documentSelection = None
+
+        self.__settings = CHSettings()
+        self.__settings.loadConfig()
+
+        # initialise window
+        self.__initialise()
+
+        self.__opened = True
+        CHMainWindow.__OPENED = True
+        self.show()
+
+    def __initialise(self):
+        """Initialise window"""
+        self.tabWidget.setCurrentIndex(0)
+
+        # build Helper list
+        self.cbxHelpers.setIconSize(CHMainWindow.ICON_SIZE_HELPER)
+        for helper in CHHelpersDef.HELPERS:
+            self.cbxHelpers.addItem(CHMainWindow.buildHelperIcon(helper), f" {CHHelpersDef.HELPERS[helper]['label']}", helper)
+        self.cbxHelpers.setCurrentIndex(list(CHHelpersDef.HELPERS.keys()).index(self.__settings.option(CHSettingsKey.HELPER_LAST_USED.id())))
+        self.cbxHelpers.currentIndexChanged.connect(self.__updateHelper)
+
+        # link line width slider<>spinbox
+        self.hsLineWidth.valueChanged.connect(self.__updateDsbLineWidth)
+        self.dsbLineWidth.valueChanged.connect(self.__updateHsLineWidth)
+
+        # build line style list
+        self.cbxLineStyle.setIconSize(CHMainWindow.ICON_SIZE_LINESTYLE)
+        for lineStyle in CHMainWindow.LINE_STYLES:
+            self.cbxLineStyle.addItem(CHMainWindow.buildLineIcon(lineStyle), f" {CHMainWindow.LINE_STYLES[lineStyle]}", lineStyle)
+        self.cbxLineStyle.currentIndexChanged.connect(self.__updatePreview)
+
+        # set line color button
+        self.pbLineColor.colorPicker().setOptionLayout(CHSettings.getHelperColorPickerLayout())
+        self.pbLineColor.colorChanged.connect(self.__updatePreview)
+
+        # options
+        self.cbForceGR.toggled.connect(self.__updatePreview)
+        self.cbFlipH.toggled.connect(self.__updatePreview)
+        self.cbFlipV.toggled.connect(self.__updatePreview)
+
+        self.cbUseSelection.toggled.connect(self.__updatePreview)
+        self.cbUseSelection.setEnabled(False)
+
+        self.cbAddAsVectorLayer.setVisible(QTSVG_AVAILABLE)
+        self.cbAddAsVectorLayer.setChecked(QTSVG_AVAILABLE and self.__settings.option(CHSettingsKey.HELPER_ADD_AS_VL.id()))
+
+        # button 'add'
+        self.pbAdd.clicked.connect(self.__addHelperLayer)
+
+        # button 'close'
+        self.pbClose.clicked.connect(self.__closeWindow)
+
+        self.pbAbout.clicked.connect(self.__displayAbout)
+
+        # update preview automatically
+        self.lblPreview.paintEvent = self.__lblPreviewPaint
+        self.lblPreview.resizeEvent = self.__lblPreviewResize
+
+        self.__appNotifier = Krita.instance().notifier()
+        self.__appNotifier.viewClosed.connect(self.__activeViewChanged)
+        self.__window = Krita.instance().activeWindow()
+        self.__window.activeViewChanged.connect(self.__activeViewChanged)
+
+        self.__updateDocumentPreview()
+
+        # restore window geometry
+        sizeW = CHSettings.get(CHSettingsKey.CONFIG_WINDOW_GEOMETRY_SIZE_WIDTH)
+        sizeH = CHSettings.get(CHSettingsKey.CONFIG_WINDOW_GEOMETRY_SIZE_HEIGHT)
+        positionX = CHSettings.get(CHSettingsKey.CONFIG_WINDOW_GEOMETRY_POSITION_X)
+        positionY = CHSettings.get(CHSettingsKey.CONFIG_WINDOW_GEOMETRY_POSITION_Y)
+        # geometry is taken in account only if size > 0 (otherwise, mean that value weren't initialized)
+        if sizeH > 0 and sizeW > 0:
+            self.setGeometry(positionX, positionY, sizeW, sizeH)
+
+        # setup manager
+        self.wsmSetups.setupApplied.connect(self.__applySetupFromManager)
+        self.wsmSetups.setPropertiesEditorSetupPreviewWidgetClass(WCHViewer)
+        self.wsmSetups.setExtensionFilter(f"{i18n('Composition Helper Setups')} (*.chsetups)")
+        self.wsmSetups.setStoredDataFormat('ch--setup', '1.0.0')
+        self.wsmSetups.setIconSizeIndex(CHSettings.get(CHSettingsKey.CONFIG_SETUPMANAGER_ZOOMLEVEL))
+        self.wsmSetups.setColumnSetupWidth(CHSettings.get(CHSettingsKey.CONFIG_SETUPMANAGER_COLUMNWIDTH))
+        self.wsmSetups.setPropertiesEditorIconSelectorViewMode(CHSettings.get(CHSettingsKey.CONFIG_SETUPMANAGER_PROPERTIES_DLGBOX_ICON_VIEWMODE))
+        self.wsmSetups.setPropertiesEditorIconSelectorIconSizeIndex(CHSettings.get(CHSettingsKey.CONFIG_SETUPMANAGER_PROPERTIES_DLGBOX_ICON_ZOOMLEVEL))
+        self.wsmSetups.setPropertiesEditorColorPickerLayout(CHSettings.getTxtColorPickerLayout())
+        self.wsmSetups.setPropertiesEditorIconButton(False)
+
+        self.wsmSetups.setActionOnDblClick(WSetupManager.MODE_APPLY)
+
+        lastSetupFileName = CHSettings.get(CHSettingsKey.CONFIG_SETUPMANAGER_LASTFILE)
+        if lastSetupFileName != '' and os.path.exists(lastSetupFileName):
+            self.wsmSetups.openSetup(lastSetupFileName, False)
+        else:
+            lastSetupFileName = os.path.join(QStandardPaths.writableLocation(QStandardPaths.GenericConfigLocation), f'krita-plugin-{PkTk.packageName()}-default.chsetups')
+            self.wsmSetups.newSetups(True)
+            self.wsmSetups.saveSetup(lastSetupFileName, 'Default Composition Helper Setups')
+
+        self.__updateHelper()
+
     def __lblPreviewPaint(self, event):
         """Update label preview"""
-        # Method is paintEvent() for widget lblPreview
-
+        # This method replace paintEvent() for widget lblPreview
         if self.__documentResized is None:
             return
 
         # ----------------------------------------------------------------------
-        # start rendering paper
+        # start rendering
         painter = QPainter(self.lblPreview)
         painter.setRenderHint(QPainter.Antialiasing)
         painter.fillRect(self.lblPreview.rect(), Qt.NoBrush)
@@ -491,7 +614,7 @@ class CHMainWindow(QDialog):
 
         painter.translate(pX, pY)
 
-        # draw a checkboard as background, usefull for picture with alpha channel
+        # draw a checkerboard as background, useful for picture with alpha channel
         painter.fillRect(QRect(0, 0, self.__documentResized.width(), self.__documentResized.height()), checkerBoardBrush())
 
         # picture from cache
@@ -509,7 +632,7 @@ class CHMainWindow(QDialog):
                              int(self.__documentRatio * self.__documentSelection.height()))
 
         # -- draw helper
-        self.__paintHelper(self.cbxHelpers.currentData(), painter, drawRect, self.__getOptions())
+        CHMainWindow.paintHelper(self.cbxHelpers.currentData(), painter, drawRect, self.__getOptions())
 
     def __lblPreviewResize(self, event=None):
         """Label has been resized"""
@@ -527,6 +650,7 @@ class CHMainWindow(QDialog):
         """Retrieve current document projection and refresh preview"""
         document = Krita.instance().activeDocument()
         if document is not None:
+            document.refreshProjection()
             self.__documentPreview = document.projection(0, 0, document.width(), document.height())
             self.__updateDocumentSelection()
             self.__updateDocumentResized()
@@ -563,8 +687,44 @@ class CHMainWindow(QDialog):
             return True
         return False
 
+    def __updateCurrentSetup(self):
+        """Update wsetupmanager current setup"""
+        # initialise default comment
+        data = self.__setupData()
+
+        # 192x192: maximum icon size allowed in setup manager
+        drawRect = QRect(QPoint(0, 0), CHMainWindow.ICON_SIZE_SETUPMANAGER)
+
+        # initialise pen according to UI
+        pen = QPen(QColor(data[CHSettingsKey.HELPER_LINE_COLOR.id(helperId='global')]))
+        pen.setStyle(data[CHSettingsKey.HELPER_LINE_STYLE.id(helperId='global')])
+        pen.setWidthF(data[CHSettingsKey.HELPER_LINE_WIDTH.id(helperId='global')])
+
+        pixmap = QPixmap(CHMainWindow.ICON_SIZE_SETUPMANAGER)
+        pixmap.fill(Qt.transparent)
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setPen(pen)
+
+        CHMainWindow.paintHelper(data[CHSettingsKey.HELPER_LAST_USED.id()], painter, drawRect, data[CHSettingsKey.HELPER_OPTIONS.id(helperId='global')])
+        painter.end()
+
+        comment = ['<html><head/><body>',
+                   CHHelpersDef.HELPERS[data[CHSettingsKey.HELPER_LAST_USED.id()]]['label'] + '<br>',
+                   f'<span style=" color:{data[CHSettingsKey.HELPER_LINE_COLOR.id(helperId="global")]} ">&#11200;</span> '
+                   + CHMainWindow.LINE_STYLES[data[CHSettingsKey.HELPER_LINE_STYLE.id(helperId='global')]]
+                   + f', {data[CHSettingsKey.HELPER_LINE_WIDTH.id(helperId="global")]:0.2f}px'
+                   '</body></html>'
+                   ]
+
+        currentSetup = self.wsmSetups.currentSetup()
+        currentSetup.setData(data)
+        currentSetup.setComments("".join(comment))
+        currentSetup.setIcon(QIcon(pixmap))
+
     def __updatePreview(self, dummy=None):
         """Update preview"""
+        self.__updateCurrentSetup()
         self.lblPreview.update()
 
     def __getPen(self, penWidthRatio=1):
@@ -604,15 +764,116 @@ class CHMainWindow(QDialog):
 
         self.__updateDocumentPreview()
 
-    def showEvent(self, event):
-        """Event trigerred when dialog is shown
+    def __applySetupFromManager(self, setupManagerSetup, fromColumnIndex):
+        """A setup from setup manager have to be applied"""
+        if isinstance(setupManagerSetup, SetupManagerSetup):
+            self.__updateUIValues(setupManagerSetup.data())
+            if fromColumnIndex <= 0:
+                self.tabWidget.setCurrentIndex(0)
+            else:
+                self.__addHelperLayer()
 
-        At this time, all widgets are initialised and size/visiblity is known
+    def __setupData(self):
+        """Return a dict with current setup data"""
+        helperId = self.cbxHelpers.currentData()
+
+        returned = {CHSettingsKey.HELPER_LAST_USED.id(): helperId,
+                    CHSettingsKey.HELPER_LINE_COLOR.id(helperId='global'): self.pbLineColor.color().name(QColor.HexArgb),
+                    CHSettingsKey.HELPER_LINE_STYLE.id(helperId='global'): self.cbxLineStyle.currentData(),
+                    CHSettingsKey.HELPER_LINE_WIDTH.id(helperId='global'): self.dsbLineWidth.value(),
+                    CHSettingsKey.HELPER_OPTIONS.id(helperId='global'): self.__getOptions(False),
+                    CHSettingsKey.HELPER_ADD_AS_VL.id(): self.cbAddAsVectorLayer.isChecked()
+                    }
+
+        return returned
+
+    def __displayAbout(self, dummy=None):
+        """display about window"""
+        WAboutWindow(self.__chName,
+                     self.__chVersion,
+                     os.path.join(os.path.dirname(__file__), 'resources', 'png', 'buli-powered-big.png'),
+                     None,
+                     ':CompositionHelper',
+                     None,
+                     buildIcon([(':/ch/images/normal/compositionhelper', QIcon.Normal)])
+                     )
+
+    def __closeWindow(self, dummy=None):
+        """close window"""
+        self.close()
+
+    def __updateDsbLineWidth(self, value):
+        """Line width slider value has been modified, update spinbox"""
+        self.dsbLineWidth.setValue(value/100)
+        self.__updatePreview()
+
+    def __updateHsLineWidth(self, value):
+        """Line width spinbox value has been modified, update slider"""
+        self.hsLineWidth.setValue(int(value*100))
+        self.__updatePreview()
+
+    def __updateHelper(self, dummy=None):
+        """helper model has been changed, update interface"""
+        currentHelper = self.cbxHelpers.currentData()
+
+        values = {CHSettingsKey.HELPER_LINE_COLOR.id(helperId='global'): self.__settings.option(CHSettingsKey.HELPER_LINE_COLOR.id(helperId=currentHelper)),
+                  CHSettingsKey.HELPER_LINE_STYLE.id(helperId='global'): self.__settings.option(CHSettingsKey.HELPER_LINE_STYLE.id(helperId=currentHelper)),
+                  CHSettingsKey.HELPER_LINE_WIDTH.id(helperId='global'): self.__settings.option(CHSettingsKey.HELPER_LINE_WIDTH.id(helperId=currentHelper)),
+                  CHSettingsKey.HELPER_OPTIONS.id(helperId='global'): self.__settings.option(CHSettingsKey.HELPER_OPTIONS.id(helperId=currentHelper))
+            }
+
+        self.__updateUIValues(values)
+
+    def __updateUIValues(self, values):
+        """Update UI from given values settings"""
+        if CHSettingsKey.HELPER_LAST_USED.id() in values:
+            self.cbxHelpers.setCurrentIndex(list(CHHelpersDef.HELPERS.keys()).index(values[CHSettingsKey.HELPER_LAST_USED.id()]))
+
+        currentHelper = self.cbxHelpers.currentData()
+        optionsAvailable = CHHelpersDef.HELPERS[currentHelper]['options']['available']
+        optionsForced = CHHelpersDef.HELPERS[currentHelper]['options']['forced']
+
+        self.pbLineColor.setColor(values[CHSettingsKey.HELPER_LINE_COLOR.id(helperId='global')])
+        self.cbxLineStyle.setCurrentIndex(list(CHMainWindow.LINE_STYLES.keys()).index(values[CHSettingsKey.HELPER_LINE_STYLE.id(helperId='global')]))
+        self.dsbLineWidth.setValue(values[CHSettingsKey.HELPER_LINE_WIDTH.id(helperId='global')])
+
+        self.cbForceGR.setEnabled(CHHelpers.OPTION_FORCE_GR in optionsAvailable)
+        if self.cbForceGR.isEnabled():
+            self.cbForceGR.setChecked(CHHelpers.OPTION_FORCE_GR in values[CHSettingsKey.HELPER_OPTIONS.id(helperId='global')])
+        else:
+            # forced value?
+            self.cbForceGR.setChecked(CHHelpers.OPTION_FORCE_GR in optionsForced)
+
+        self.cbFlipH.setEnabled(CHHelpers.OPTION_FLIPV in optionsAvailable)
+        if self.cbFlipH.isEnabled():
+            self.cbFlipH.setChecked(CHHelpers.OPTION_FLIPV in values[CHSettingsKey.HELPER_OPTIONS.id(helperId='global')])
+        else:
+            # forced value?
+            self.cbFlipH.setChecked(CHHelpers.OPTION_FLIPV in optionsForced)
+
+        self.cbFlipV.setEnabled(CHHelpers.OPTION_FLIPH in optionsAvailable)
+        if self.cbFlipV.isEnabled():
+            self.cbFlipV.setChecked(CHHelpers.OPTION_FLIPH in values[CHSettingsKey.HELPER_OPTIONS.id(helperId='global')])
+        else:
+            # forced value?
+            self.cbFlipV.setChecked(CHHelpers.OPTION_FLIPH in optionsForced)
+
+        self.cbUseSelection.setChecked(CHHelpers.OPTION_USE_SELECTION in values[CHSettingsKey.HELPER_OPTIONS.id(helperId='global')])
+
+        if CHSettingsKey.HELPER_ADD_AS_VL.id() in values:
+            self.cbAddAsVectorLayer.setChecked(values[CHSettingsKey.HELPER_ADD_AS_VL.id()])
+
+        self.__updatePreview()
+
+    def showEvent(self, event):
+        """Event triggered when dialog is shown
+
+        At this time, all widgets are initialised and size/visibility is known
         """
         self.__updateDocumentPreview()
 
     def timerEvent(self, event):
-        """Print resize timeout occured"""
+        """Resize timeout occurred, refresh preview according to new size"""
         # timeout initialized during resize has been reached
         self.__timerResizeId = 0
 
@@ -624,22 +885,45 @@ class CHMainWindow(QDialog):
 
     def closeEvent(self, event):
         """Window is closed"""
-        if self.__opened:
-            try:
-                self.__window.activeViewChanged.disconnect(self.__activeViewChanged)
-            except Exception:
-                pass
-            try:
-                self.__appNotifier.viewClosed.disconnect(self.__activeViewChanged)
-            except Exception:
-                pass
-            CHMainWindow.__OPENED = False
+        if not self.__opened:
+            # window is closed before being opened, does nothing in this case
+            return
+
+        try:
+            self.__window.activeViewChanged.disconnect(self.__activeViewChanged)
+        except Exception:
+            pass
+        try:
+            self.__appNotifier.viewClosed.disconnect(self.__activeViewChanged)
+        except Exception:
+            pass
+
+        rect = self.geometry()
+
+        CHSettings.setHelperColorPickerLayout(self.pbLineColor.colorPicker().optionLayout())
+
+        CHSettings.setTxtColorPickerLayout(self.wsmSetups.propertiesEditorColorPickerLayout())
+        CHSettings.set(CHSettingsKey.CONFIG_SETUPMANAGER_LASTFILE, self.wsmSetups.lastFileName())
+        CHSettings.set(CHSettingsKey.CONFIG_SETUPMANAGER_ZOOMLEVEL, self.wsmSetups.iconSizeIndex())
+        CHSettings.set(CHSettingsKey.CONFIG_SETUPMANAGER_COLUMNWIDTH, self.wsmSetups.columnSetupWidth())
+        CHSettings.set(CHSettingsKey.CONFIG_SETUPMANAGER_PROPERTIES_DLGBOX_ICON_VIEWMODE, self.wsmSetups.propertiesEditorIconSelectorViewMode())
+        CHSettings.set(CHSettingsKey.CONFIG_SETUPMANAGER_PROPERTIES_DLGBOX_ICON_ZOOMLEVEL, self.wsmSetups.propertiesEditorIconSelectorIconSizeIndex())
+
+        CHSettings.set(CHSettingsKey.CONFIG_WINDOW_GEOMETRY_SIZE_WIDTH, rect.width())
+        CHSettings.set(CHSettingsKey.CONFIG_WINDOW_GEOMETRY_SIZE_HEIGHT, rect.height())
+        CHSettings.set(CHSettingsKey.CONFIG_WINDOW_GEOMETRY_POSITION_X, rect.x())
+        CHSettings.set(CHSettingsKey.CONFIG_WINDOW_GEOMETRY_POSITION_Y, rect.y())
+
+        CHSettings.save()
+        self.wsmSetups.saveSetup(self.wsmSetups.lastFileName())
+
+        CHMainWindow.__OPENED = False
 
     def enterEvent(self, event):
-        """Trigerred when mouse enter above QDialog"""
+        """Triggered when mouse enter above QDialog"""
         # not sure why focusInEvent is not working so use this one
         # maybe not the more elegant way to do it but as there's no event/signal on Document class
-        # allowoing to detect selection has been modified (or if exist, was not found :-/)
+        # allowing to detect selection has been modified (or if exist, was not found :-/)
         #
         # consider, if mouse leave and the enter on QDialog that maybe, the selection in document
         # has been modified
@@ -654,9 +938,9 @@ class CHMainWindow(QDialog):
         elif self.__updateDocumentSelection():
             self.__updatePreview()
 
-    def addHelperLayer(self):
-        """Add Helper do current document"""
-        # check if a group Node for helper alreay exists
+    def __addHelperLayer(self):
+        """Add Helper to current document"""
+        # check if a group Node for helper already exists
         if self.__documentPreview is None:
             return
 
@@ -703,10 +987,9 @@ class CHMainWindow(QDialog):
 
         pen = self.__getPen()
 
-        # painter.begin(pixmap)
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setPen(pen)
-        self.__paintHelper(helperId, painter, drawRect, self.__getOptions())
+        CHMainWindow.paintHelper(helperId, painter, drawRect, self.__getOptions())
         painter.end()
 
         if rasterMode:
@@ -717,11 +1000,8 @@ class CHMainWindow(QDialog):
             EKritaNode.fromSVG(newLayer, svgContent, document)
             groupNode.addChildNode(newLayer, None)
 
-        document.refreshProjection()
-        self.__updateDocumentPreview()
-
-        # also update settings when a layers is added (keep in memory that for current helper, the
-        # prefered values are current values)
+        # update global settings when a layers is added (keep in memory that for current helper, the
+        # preferred values are current values)
         self.__settings.setOption(CHSettingsKey.HELPER_LAST_USED.id(), helperId)
         self.__settings.setOption(CHSettingsKey.HELPER_ADD_AS_VL.id(), self.cbAddAsVectorLayer.isChecked())
         self.__settings.setOption(CHSettingsKey.HELPER_LINE_COLOR.id(helperId=helperId), pen.color().name(QColor.HexArgb))
@@ -729,3 +1009,14 @@ class CHMainWindow(QDialog):
         self.__settings.setOption(CHSettingsKey.HELPER_LINE_WIDTH.id(helperId=helperId), pen.widthF())
         self.__settings.setOption(CHSettingsKey.HELPER_OPTIONS.id(helperId=helperId), self.__getOptions(True))
         self.__settings.saveConfig()
+
+        # There's a lot of async stuff
+        # Adding a child in layer stack is not "taken in account" immediately
+        # and if update for preview is made to quickly, then it doesn't contain
+        # the latest layer added
+        #
+        # The `document.waitForDone()` instruction doesn't change anything
+        # So the warrior hack method: a sleep T_T
+        # 125ms is still too fast... use 250ms
+        Timer.sleep(250)
+        self.__updateDocumentPreview()

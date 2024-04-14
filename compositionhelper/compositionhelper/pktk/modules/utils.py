@@ -1,0 +1,453 @@
+# -----------------------------------------------------------------------------
+# PyKritaToolKit
+# Copyright (C) 2019-2022 - Grum999
+# -----------------------------------------------------------------------------
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# https://spdx.org/licenses/GPL-3.0-or-later.html
+# -----------------------------------------------------------------------------
+# A Krita plugin framework
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# The imgutils module provides miscellaneous functions
+#
+# -----------------------------------------------------------------------------
+
+import locale
+import time
+import re
+import sys
+import os
+import json
+import base64
+
+import xml.etree.ElementTree as ET
+
+import PyQt5.uic
+
+from PyQt5.Qt import *
+from PyQt5.QtGui import (
+        QImage
+    )
+from PyQt5.QtCore import (
+        QRect
+    )
+
+from .imgutils import buildIcon
+from .colorutils import QEColor
+from ..pktk import *
+
+# -----------------------------------------------------------------------------
+
+try:
+    locale.setlocale(locale.LC_ALL, '')
+except Exception:
+    pass
+
+
+def intDefault(value, default=0):
+    """Return value as int
+
+    If value is empty or None or not a valid integer, return default value
+    """
+    if value is None:
+        return default
+
+    try:
+        return int(value)
+    except Exception:
+        return default
+
+
+def getLangValue(dictionary, lang=None, default=''):
+    """Return value from a dictionary for which key is lang code (like en-US)
+
+    if `dictionary` is empty:
+        return `default` value
+    if `dictionary` contains one entry only:
+        return it
+
+    if `lang` is None:
+        use current locale
+
+    if `lang` exist in dictionary:
+        return it
+    else if language exist (with different country code):
+        return it
+    else if 'en-XX' exists:
+        return it
+    else:
+        return first entry
+    """
+    if not isinstance(dictionary, dict):
+        raise Exception('Given `dictionary` must be a valid <dict> value')
+
+    if len(dictionary) == 0:
+        return default
+    elif len(dictionary) == 1:
+        return dictionary[list(dictionary.keys())[0]]
+
+    if lang is None:
+        lang = locale.getlocale()[0].replace('_', '-')
+
+    if lang in dictionary:
+        return dictionary[lang]
+    else:
+        language = lang.split('-')[0]
+        for key in dictionary.keys():
+            keyLang = key.split('-')[0]
+
+            if keyLang == language:
+                return dictionary[key]
+
+        # not found, try "en"
+        language = 'en'
+        for key in dictionary.keys():
+            keyLang = key.split('-')[0]
+
+            if keyLang == language:
+                return dictionary[key]
+
+        # not found, return first entry
+        return dictionary[list(dictionary.keys())[0]]
+
+
+def kritaVersion():
+    """Return a dictionary with following values:
+
+    {
+        'major': 0,
+        'minor': 0,
+        'revision': 0,
+        'devRev': '',
+        'git': '',
+        'rawString': ''
+    }
+
+    Example:
+        "5.0.0-prealpha (git 8f2fe10)"
+        will return
+
+        {
+            'major': 5,
+            'minor': 0,
+            'revision', 0,
+            'devFlag': 'prealpha',
+            'git': '8f2fe10',
+            'rawString': '5.0.0-prealpha (git 8f2fe10)'
+        }
+    """
+    returned = {
+            'major': 0,
+            'minor': 0,
+            'revision': 0,
+            'devFlag': '',
+            'git': '',
+            'rawString': Krita.instance().version()
+        }
+    nfo = re.match(r"(\d+)\.(\d+)\.(\d+)(?:-([^\s]+)\s\(git\s([^\)]+)\))?", returned['rawString'])
+    if nfo is not None:
+        returned['major'] = int(nfo.groups()[0])
+        returned['minor'] = int(nfo.groups()[1])
+        returned['revision'] = int(nfo.groups()[2])
+        returned['devFlag'] = nfo.groups()[3]
+        returned['git'] = nfo.groups()[4]
+
+    return returned
+
+
+def checkKritaVersion(major, minor, revision):
+    """Return True if current version is greater or equal to asked version"""
+    nfo = kritaVersion()
+
+    if major is None:
+        return True
+    elif nfo['major'] == major:
+        if minor is None:
+            return True
+        elif nfo['minor'] == minor:
+            if revision is None or nfo['revision'] >= revision:
+                return True
+        elif nfo['minor'] > minor:
+            return True
+    elif nfo['major'] > major:
+        return True
+    return False
+
+
+def loadXmlUi(fileName, parent):
+    """Load a ui file PyQt5.uic.loadUi()
+
+    For each item in ui file that refers to an icon resource, update widget
+    properties with icon reference
+    """
+    # load UI
+
+    # temporary add <pluginName> path to sys.path to let 'pktk.widgets.xxx' being accessible during xmlLoad()
+    #   From:            /home/xxx/.local/share/krita/pykrita/<pluginName>/pktk/widgets/xxx.py
+    #   Add in sys.path: /home/xxx/.local/share/krita/pykrita/<pluginName>
+    #
+    #                                                               xxx.py
+    #                                               widgets         |
+    #                               pktk            |               |
+    #               <pluginName>    |               |               |
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+    returned = PyQt5.uic.loadUi(fileName, parent, PkTk.packageName())
+    sys.path.pop()
+
+    # Parse XML file and retrieve all object for which an icon is set
+    tree = ET.parse(fileName)
+    for nodeParent in tree.findall(".//property[@name='icon'].."):
+        for nodeIconSet in nodeParent.findall(".//iconset"):
+            widget = parent.findChild((QAction, QWidget), nodeParent.attrib['name'])
+            if widget is not None:
+                for nodeIcon in list(nodeIconSet):
+                    # store on object resource path for icons
+                    widget.setProperty(f"__bcIcon_{nodeIcon.tag}", nodeIcon.text)
+    return returned
+
+
+def cloneRect(rect):
+    """Clone a QRect"""
+    if isinstance(rect, QRect):
+        return QRect(rect.left(), rect.top(), rect.width(), rect.height())
+    elif isinstance(rect, QRectF):
+        return QRectF(rect.left(), rect.top(), rect.width(), rect.height())
+    else:
+        raise EInvalidType('Given `rect` must be a <QRect> or <QRectF>')
+
+
+def regExIsValid(regex):
+    """Return True if given regular expression is valid, otherwise false"""
+    try:
+        r = re.compile(regex)
+    except Exception:
+        return False
+    return True
+
+
+def replaceLineEditClearButton(lineEdit):
+    """Replace default 'clear' button with a better one"""
+    toolButton = lineEdit.findChild(QToolButton)
+    if toolButton:
+        toolButton.setIcon(buildIcon("pktk:edit_text_clear"))
+
+
+# ------------------------------------------------------------------------------
+
+class JsonQObjectEncoder(json.JSONEncoder):
+    """Json encoder class to take in account additional object
+
+    data={
+        v1: QSize(1,2),
+        v2: QEColor('#ffff00')
+    }
+    json.dumps(data, cls=JsonQObjectEncoder)
+
+    will return string:
+        '''
+        {"v1": {
+                "objType": 'QSize',
+                "width": 1,
+                "height": 2,
+            },
+         "v2": {
+                "objType": 'QEColor',
+                "color": '#ffff00',
+                "isNone": false,
+            }
+        }
+        '''
+    """
+    def default(self, objectToEncode):
+        if isinstance(objectToEncode, QSize):
+            return {
+                    'objType': "QSize",
+                    'width': objectToEncode.width(),
+                    'height': objectToEncode.height()
+                }
+        elif isinstance(objectToEncode, QPoint):
+            return {
+                    'objType': "QPoint",
+                    'x': objectToEncode.x(),
+                    'y': objectToEncode.y()
+                }
+        elif isinstance(objectToEncode, QEColor):
+            return {
+                    'objType': "QEColor",
+                    'color': objectToEncode.name(),
+                    'isNone': objectToEncode.isNone()
+                }
+        elif isinstance(objectToEncode, QImage):
+            ptr = objectToEncode.bits()
+            ptr.setsize(objectToEncode.byteCount())
+            return {
+                    'objType': "QImage",
+                    'b64': base64.b64encode(ptr.asstring()).decode()
+                }
+        elif isinstance(objectToEncode, bytes):
+            return {
+                    'objType': "bytes",
+                    'b64': base64.b64encode(objectToEncode).decode()
+                }
+        elif hasattr(objectToEncode, 'exportData') and callable(objectToEncode.exportData):
+            return objectToEncode.exportData()
+
+        # Let the base class default method raise the TypeError
+        return super(JsonQObjectEncoder, self).default(objectToEncode)
+
+
+class JsonQObjectDecoder(json.JSONDecoder):
+    """Json decoder class to take in account additional object
+
+    json string:
+        '''
+        {"v1": {
+                "objType": 'QSize',
+                "width": 1,
+                "height": 2,
+            },
+         "v2": {
+                "objType": 'QEColor',
+                "color": '#ffff00',
+                "isNone": false,
+            }
+        }
+        '''
+
+    json.loads(data, cls=JsonQObjectDecoder)
+
+    will return dict:
+        {
+            v1: QSize(1,2),
+            v2: QEColor('#ffff00')
+        }
+    """
+    def __init__(self):
+        json.JSONDecoder.__init__(self, object_hook=self.dict2obj)
+
+    def dict2obj(self, objectToDecode):
+        if ('objType' in objectToDecode and objectToDecode['objType'] == "QSize" and
+           'width' in objectToDecode and 'height' in objectToDecode):
+            return QSize(objectToDecode['width'], objectToDecode['height'])
+        if ('objType' in objectToDecode and objectToDecode['objType'] == "QPoint" and
+           'x' in objectToDecode and 'y' in objectToDecode):
+            return QPoint(objectToDecode['x'], objectToDecode['y'])
+        elif ('objType' in objectToDecode and objectToDecode['objType'] == "QEColor" and
+              'color' in objectToDecode and 'isNone' in objectToDecode):
+            returned = QEColor(objectToDecode['color'])
+            returned.setNone(objectToDecode['isNone'])
+            return returned
+        elif ('objType' in objectToDecode and objectToDecode['objType'] == "QImage" and
+              'b64' in objectToDecode):
+            return QImage.fromData(base64.b64decode(objectToDecode['b64']))
+        elif ('objType' in objectToDecode and objectToDecode['objType'] == "bytes" and
+              'b64' in objectToDecode):
+            return base64.b64decode(objectToDecode['b64'])
+
+        # Let the base class default method raise the TypeError
+        return objectToDecode
+
+
+# ------------------------------------------------------------------------------
+
+class Debug(object):
+    """Provides some static methods to simplify debug"""
+    __enabled = False
+    __stopwatches = {}
+
+    @staticmethod
+    def print(value, *argv):
+        """Print value to console, using argv for formatting"""
+        if Debug.__enabled and isinstance(value, str):
+            sys.stdout = sys.__stdout__
+            if len(argv) > 0:
+                print('DEBUG:', value.format(*argv))
+            else:
+                print('DEBUG:', value)
+
+    @staticmethod
+    def enabled():
+        """return if Debug is enabled or not"""
+        return Debug.__enabled
+
+    @staticmethod
+    def setEnabled(value):
+        """set Debug enabled or not"""
+        Debug.__enabled = value
+
+    @staticmethod
+    def swPrint(pattern=None):
+        """Print stopwatch results"""
+        if Debug.__enabled:
+            for name, duration in Debug.swList(pattern):
+                Debug.print(f"{name}: {duration:.8f}")
+
+    @staticmethod
+    def swReset(reKey=None):
+        """Reset all Stopwatches"""
+        if Debug.__enabled:
+            if reKey is None:
+                Debug.__stopwatches = {}
+                Debug.swStart('<GlobalRef>', False)
+            else:
+                for key in list(Debug.__stopwatches.keys()):
+                    if re.search(reKey, key):
+                        Debug.__stopwatches.pop(key)
+
+    @staticmethod
+    def swStart(name, printStart=True):
+        """Start a stopwatch
+
+        If stopwatch already exist, restart from now
+        """
+        if Debug.__enabled:
+            if printStart:
+                Debug.print(f">> Start: {name}")
+            Debug.__stopwatches[name] = {'start': time.time(),
+                                         'stop': None
+                                         }
+
+    @staticmethod
+    def swStop(name, printStop=True):
+        """Stop a stopwatch
+
+        If stopwatch doesn't exist or is already stopped, do nothing
+        """
+        if Debug.__enabled:
+            if name in Debug.__stopwatches and Debug.__stopwatches[name]['stop'] is None:
+                Debug.__stopwatches[name]['stop'] = time.time()
+            if printStop:
+                Debug.print(f"<< Stop:  {name} -- ({Debug.swDuration(name):.8f}  @+{Debug.swDuration('<GlobalRef>'):.8f})")
+
+    @staticmethod
+    def swDuration(name):
+        """Return stopwatch duration, in seconds
+
+        If stopwatch doesn't exist, return None
+        If stopwatch is not stopped, return current duration from start time
+        """
+        if Debug.__enabled:
+            if name in Debug.__stopwatches:
+                if Debug.__stopwatches[name]['stop'] is None:
+                    return time.time() - Debug.__stopwatches[name]['start']
+                else:
+                    return Debug.__stopwatches[name]['stop'] - Debug.__stopwatches[name]['start']
+        return 0
+
+    @staticmethod
+    def swList(pattern=None):
+        """Return all stopwatch durations with a list of tuple(key, duration in seconds)
+
+        If stopwatch doesn't exist, return None
+        If stopwatch is not stopped, return current duration from start time
+        """
+        if Debug.__enabled:
+            if isinstance(pattern, str):
+                return [(name, Debug.swDuration(name)) for name in sorted(Debug.__stopwatches.keys()) if re.match(pattern, name)]
+            else:
+                return [(name, Debug.swDuration(name)) for name in sorted(Debug.__stopwatches.keys())]
+        else:
+            return []
+
