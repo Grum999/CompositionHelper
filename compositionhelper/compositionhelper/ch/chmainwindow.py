@@ -1,26 +1,17 @@
 # -----------------------------------------------------------------------------
 # Composition Helper
-# Copyright (C) 2020 - Grum999
+# Copyright (C) 2020-2024 - Grum999
 # -----------------------------------------------------------------------------
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.
-# If not, see https://www.gnu.org/licenses/
+# https://spdx.org/licenses/GPL-3.0-or-later.html
 # -----------------------------------------------------------------------------
 # A Krita plugin designed to add composition helper in documents
 # -----------------------------------------------------------------------------
 
 import locale
 import os
+import sys
 from krita import Krita
 
 import PyQt5.uic
@@ -92,9 +83,9 @@ class WCHViewer(QWidget):
         sys.path.pop()
 
     def showEvent(self, event):
-        """Event trigerred when dialog is shown
+        """Event triggered when dialog is shown
 
-        At this time, all widgets are initialised and size/visiblity is known
+        At this time, all widgets are initialised and size/visibility is known
         """
         self.__renderPreview()
 
@@ -160,9 +151,10 @@ class CHMainWindow(QDialog):
 
     ICON_SIZE_LINESTYLE = QSize(48, 12)
     ICON_SIZE_HELPER = QSize(128, 96)
+    ICON_SIZE_SETUPMANAGER = QSize(192, 192)
 
     @staticmethod
-    def buildLineIcon(lineStyle, iconSize = QSize(), asPixmap=False):
+    def buildLineIcon(lineStyle, iconSize=QSize(), asPixmap=False):
         """Build a QIcon with lineStyle"""
         if not iconSize.isValid():
             iconSize = CHMainWindow.ICON_SIZE_LINESTYLE
@@ -184,7 +176,7 @@ class CHMainWindow(QDialog):
         return QIcon(pixmap)
 
     @staticmethod
-    def buildHelperIcon(helper, iconSize = QSize()):
+    def buildHelperIcon(helper, iconSize=QSize()):
         """Build a QIcon with lineStyle"""
         if not iconSize.isValid():
             iconSize = CHMainWindow.ICON_SIZE_HELPER
@@ -205,7 +197,7 @@ class CHMainWindow(QDialog):
         return QIcon(pixmap)
 
     @staticmethod
-    def paintHelper(helper, painter, rectArea, options=[]):
+    def paintHelper(helper, painter, rectArea, options=None):
         """Paint `helper` on `painter`, using given `size`
 
         Consider that paint surface is initialised as well as the painter pen
@@ -240,6 +232,9 @@ class CHMainWindow(QDialog):
                         QPointF(rect.right(), pY),
                         QRectF(QPointF(rect.left(), rect.top()), QPointF(rect.right(), pY))
                     )
+
+        if options is None:
+            options = []
 
         # save current painter transformations state
         painter.save()
@@ -493,7 +488,7 @@ class CHMainWindow(QDialog):
         self.__lastResized = QSize(0, 0)
 
         # document preview: projection from document
-        # document resized: projection resized to label dimension andd store as a cache to avoid doing resizing on each
+        # document resized: projection resized to label dimension and store as a cache to avoid doing resizing on each
         #                   canvas refresh
         self.__documentPreview = None
         self.__documentResized = None
@@ -619,7 +614,7 @@ class CHMainWindow(QDialog):
 
         painter.translate(pX, pY)
 
-        # draw a checkboard as background, usefull for picture with alpha channel
+        # draw a checkerboard as background, useful for picture with alpha channel
         painter.fillRect(QRect(0, 0, self.__documentResized.width(), self.__documentResized.height()), checkerBoardBrush())
 
         # picture from cache
@@ -693,20 +688,19 @@ class CHMainWindow(QDialog):
         return False
 
     def __updateCurrentSetup(self):
-        """Update wsetupmanger current setup"""
+        """Update wsetupmanager current setup"""
         # initialise default comment
         data = self.__setupData()
 
         # 192x192: maximum icon size allowed in setup manager
-        size = QSize(192, 192)
-        drawRect = QRect(QPoint(0, 0), size)
+        drawRect = QRect(QPoint(0, 0), CHMainWindow.ICON_SIZE_SETUPMANAGER)
 
         # initialise pen according to UI
         pen = QPen(QColor(data[CHSettingsKey.HELPER_LINE_COLOR.id(helperId='global')]))
         pen.setStyle(data[CHSettingsKey.HELPER_LINE_STYLE.id(helperId='global')])
         pen.setWidthF(data[CHSettingsKey.HELPER_LINE_WIDTH.id(helperId='global')])
 
-        pixmap = QPixmap(size)
+        pixmap = QPixmap(CHMainWindow.ICON_SIZE_SETUPMANAGER)
         pixmap.fill(Qt.transparent)
         painter = QPainter(pixmap)
         painter.setRenderHint(QPainter.Antialiasing)
@@ -716,12 +710,12 @@ class CHMainWindow(QDialog):
         painter.end()
 
         comment = ['<html><head/><body>',
-                    CHHelpersDef.HELPERS[data[CHSettingsKey.HELPER_LAST_USED.id()]]['label'] + '<br>',
-                    f'<span style=" color:{data[CHSettingsKey.HELPER_LINE_COLOR.id(helperId="global")]} ">&#11200;</span> '
-                    + CHMainWindow.LINE_STYLES[data[CHSettingsKey.HELPER_LINE_STYLE.id(helperId='global')]]
-                    + f', {data[CHSettingsKey.HELPER_LINE_WIDTH.id(helperId="global")]:0.2f}px'
-                    '</body></html>'
-                    ]
+                   CHHelpersDef.HELPERS[data[CHSettingsKey.HELPER_LAST_USED.id()]]['label'] + '<br>',
+                   f'<span style=" color:{data[CHSettingsKey.HELPER_LINE_COLOR.id(helperId="global")]} ">&#11200;</span> '
+                   + CHMainWindow.LINE_STYLES[data[CHSettingsKey.HELPER_LINE_STYLE.id(helperId='global')]]
+                   + f', {data[CHSettingsKey.HELPER_LINE_WIDTH.id(helperId="global")]:0.2f}px'
+                   '</body></html>'
+                   ]
 
         currentSetup = self.wsmSetups.currentSetup()
         currentSetup.setData(data)
@@ -872,14 +866,14 @@ class CHMainWindow(QDialog):
         self.__updatePreview()
 
     def showEvent(self, event):
-        """Event trigerred when dialog is shown
+        """Event triggered when dialog is shown
 
-        At this time, all widgets are initialised and size/visiblity is known
+        At this time, all widgets are initialised and size/visibility is known
         """
         self.__updateDocumentPreview()
 
     def timerEvent(self, event):
-        """Print resize timeout occured"""
+        """Resize timeout occurred, refresh preview according to new size"""
         # timeout initialized during resize has been reached
         self.__timerResizeId = 0
 
@@ -926,7 +920,7 @@ class CHMainWindow(QDialog):
         CHMainWindow.__OPENED = False
 
     def enterEvent(self, event):
-        """Trigerred when mouse enter above QDialog"""
+        """Triggered when mouse enter above QDialog"""
         # not sure why focusInEvent is not working so use this one
         # maybe not the more elegant way to do it but as there's no event/signal on Document class
         # allowing to detect selection has been modified (or if exist, was not found :-/)
@@ -945,8 +939,8 @@ class CHMainWindow(QDialog):
             self.__updatePreview()
 
     def __addHelperLayer(self):
-        """Add Helper do current document"""
-        # check if a group Node for helper alreay exists
+        """Add Helper to current document"""
+        # check if a group Node for helper already exists
         if self.__documentPreview is None:
             return
 
@@ -1007,7 +1001,7 @@ class CHMainWindow(QDialog):
             groupNode.addChildNode(newLayer, None)
 
         # update global settings when a layers is added (keep in memory that for current helper, the
-        # prefered values are current values)
+        # preferred values are current values)
         self.__settings.setOption(CHSettingsKey.HELPER_LAST_USED.id(), helperId)
         self.__settings.setOption(CHSettingsKey.HELPER_ADD_AS_VL.id(), self.cbAddAsVectorLayer.isChecked())
         self.__settings.setOption(CHSettingsKey.HELPER_LINE_COLOR.id(helperId=helperId), pen.color().name(QColor.HexArgb))
@@ -1018,8 +1012,8 @@ class CHMainWindow(QDialog):
 
         # There's a lot of async stuff
         # Adding a child in layer stack is not "taken in account" immediately
-        # and if update for preview is made to quicky, then it doesn't contain
-        # the lastest layer added
+        # and if update for preview is made to quickly, then it doesn't contain
+        # the latest layer added
         #
         # The `document.waitForDone()` instruction doesn't change anything
         # So the warrior hack method: a sleep T_T
