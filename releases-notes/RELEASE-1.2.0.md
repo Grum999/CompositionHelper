@@ -3,6 +3,7 @@
 # Main Interface
 
 ## Implement *New Helpers*
+[Feature request #4](https://github.com/Grum999/CompositionHelper/issues/4)
 
 Some additional *Helpers* have been added to current list:
 - Quarters
@@ -22,9 +23,9 @@ _Reciprocal lines based from **Rules of thirds** (Green example) & **Golden sect
 
 ![Reciprocal lines helpers](./../screenshots/r1-2-0_helpers3.png)
 
-[Feature request #4](https://github.com/Grum999/CompositionHelper/issues/4)
 
 ## Implement *Menu access*
+[Feature request #5](https://github.com/Grum999/CompositionHelper/issues/5)
 
 Menu to open *Composition Helper* plugin has been moved into *Tools* menu, and:
 - An icon has been added
@@ -39,12 +40,13 @@ _Menu with icon_
 > For Windows users, icons menu are hidden by a hardcoded Krita's rule.
 > Icon won't be visible unless menu icons are activated in Windows (possible with some UI tweak...).
 
-[Feature request #5](https://github.com/Grum999/CompositionHelper/issues/5)
-
 
 ## Implement *Settings manager*
+[Feature request #7](https://github.com/Grum999/CompositionHelper/issues/7)
 
 The *Settings manager* allows to save different *Helper* setup, organize and reuse them.
+
+### Main interface 
 
 ![Settings manager](./../screenshots/r1-2-0_setup_manager-main.png)
 
@@ -56,8 +58,18 @@ The *Settings manager* allows to save different *Helper* setup, organize and reu
 | 4         | Pool settings<br>- Drag'n'Drop to reorganise items<br>- Double-click on item (column *Setup*) to expand/collapse folder or to load *Helper* setup<br>- Double-click on item (column *Description*) to edit folder or to apply *Helper* |
 | 5         | Current settings pool file                                                                                                                                                                                                             |
 
+### Helper setup editing interface
 
-[Feature request #7](https://github.com/Grum999/CompositionHelper/issues/7)
+Editing a *Helper* setup allow to define:
+- Title
+- Description
+
+![Settings manager](./../screenshots/r1-2-0_setup_manager-edit_setup1.png)
+> If edited *Helper* setup is not the same than the current defined one, information message *Setup definition is not the same than current active one* will be show
+> Click on refresh button to update setup 
+
+You can preview *Helper* with properties in *Setup preview* tab 
+![Settings manager](./../screenshots/r1-2-0_setup_manager-edit_setup2.png)
 
 
 ## Fix bug
