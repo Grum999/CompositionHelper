@@ -1,5 +1,9 @@
 # Composition Helper
 
+> Note: has been moved on Codeberg
+> 
+> https://codeberg.org/Grum999/CompositionHelper
+
 A plugin for [Krita](https://krita.org).
 
 
